@@ -26,6 +26,31 @@ Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Current
 
 The `data.regionreunion.com` catalog exposes ~270 datasets. More modules can be added incrementally — see *Extending* below.
 
+## Reaching datasets that aren't wired yet
+
+The dedicated modules above cover the most-asked topics, but the portal has ~270 datasets in total. Instead of writing a new module for every long-tail question, the **catalog** module gives the MCP client three generic tools that together act as an escape hatch onto the whole portal:
+
+1. **`reunion_search_catalog`** — keyword / theme / publisher search across all datasets. Returns dataset IDs, titles, descriptions, record counts.
+2. **`reunion_inspect_dataset`** — given a dataset ID, returns its full schema (field names + types) so the agent knows what it can filter on.
+3. **`reunion_query_dataset`** — fetches records from any dataset with a raw ODSQL `where` clause, `select`, `order_by`, `limit`.
+
+Typical flow when the user asks about something no dedicated module covers (e.g. volcanology, elections, library attendance, …):
+
+```
+reunion_search_catalog({ query: "volcan" })
+  → returns e.g. dataset_id "suivi-volcanologique-piton-fournaise"
+reunion_inspect_dataset({ dataset_id: "suivi-volcanologique-piton-fournaise" })
+  → returns fields like date, type_evenement, magnitude, profondeur…
+reunion_query_dataset({
+  dataset_id: "suivi-volcanologique-piton-fournaise",
+  where: "type_evenement = 'éruption' AND date >= date'2023-01-01'",
+  order_by: "date DESC",
+  limit: 20
+})
+```
+
+Net effect: the agent can answer questions backed by any of the ~270 datasets without anyone having to code a new module first. Datasets that turn out to be popular via `query_dataset` are candidates for being promoted into their own dedicated module with curated field names.
+
 ## Install
 
 ```bash
