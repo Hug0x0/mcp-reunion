@@ -6,36 +6,33 @@ import { ReunionClient } from '../src/client.js';
 const client = new ReunionClient();
 
 describe('ReunionClient', () => {
-  it('should fetch public holidays', async () => {
-    const data = await client.getRecords('jours-feries-en-nc', {
-      limit: 5,
-    });
-
-    expect(data.total_count).toBeGreaterThan(0);
-    expect(data.results).toHaveLength(5);
-    expect(data.results[0]).toHaveProperty('jour_ferie');
-    expect(data.results[0]).toHaveProperty('nom_jour_ferie');
-  });
-
-  it('should fetch companies', async () => {
-    const data = await client.getRecords('entreprises-actives-au-ridet', {
+  it('fetches records from a Réunion dataset', async () => {
+    const data = await client.getRecords('donnees-synop-essentielles-ommpublic', {
+      where: "nom_reg = 'La Réunion'",
       limit: 3,
     });
 
     expect(data.total_count).toBeGreaterThan(0);
-    expect(data.results[0]).toHaveProperty('rid7');
-    expect(data.results[0]).toHaveProperty('denomination');
+    expect(data.results.length).toBeGreaterThan(0);
+    expect(data.results[0]).toHaveProperty('nom');
   });
 
-  it('should handle filters', async () => {
-    const data = await client.getRecords('jours-feries-en-nc', {
-      where: "jour_ferie >= '2026-01-01' AND jour_ferie <= '2026-12-31'",
-      limit: 20,
+  it('fetches dataset metadata from the catalog', async () => {
+    const meta = await client.getDatasetMetadata('trafic-mja-rn-lareunion');
+    expect(meta).toBeDefined();
+    expect(meta?.dataset_id).toBe('trafic-mja-rn-lareunion');
+    expect(Array.isArray(meta?.fields)).toBe(true);
+  });
+
+  it('applies WHERE filters', async () => {
+    const data = await client.getRecords('trafic-mja-rn-lareunion', {
+      where: 'tmja > 10000',
+      limit: 5,
     });
 
-    expect(data.total_count).toBeGreaterThan(0);
-    data.results.forEach((holiday: any) => {
-      expect(holiday.jour_ferie).toMatch(/^2026-/);
+    expect(data.results.length).toBeGreaterThan(0);
+    data.results.forEach((row: any) => {
+      expect(row.tmja).toBeGreaterThan(10000);
     });
   });
 });
