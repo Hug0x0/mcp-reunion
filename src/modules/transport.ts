@@ -9,6 +9,7 @@ import { buildWhere, errorResult, jsonResult, pickNumber, pickString, quote } fr
 const DATASET_TRAFFIC = 'trafic-mja-rn-lareunion';
 const DATASET_ROAD_CLASS = 'rn-classement-fonctionnel-lareunion';
 const DATASET_CYCLE = 'voie-velo-regionale';
+const DATASET_GTFS = 'donnees-gtfs-lareunion';
 
 export function registerTransportTools(server: McpServer): void {
   server.tool(
@@ -85,6 +86,45 @@ export function registerTransportTools(server: McpServer): void {
         });
       } catch (error) {
         return errorResult(error instanceof Error ? error.message : 'Failed to fetch road classification');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_search_car_jaune_stops',
+    'Search Car Jaune (Réunion interurban bus network) GTFS stops by name or code.',
+    {
+      query: z.string().optional().describe('Free-text search on stop name'),
+      stop_code: z.string().optional().describe('Exact stop code filter'),
+      wheelchair_accessible: z.boolean().optional().describe('Return only stops flagged wheelchair-accessible (wheelchair_boarding = "1")'),
+      limit: z.number().int().min(1).max(500).default(50),
+    },
+    async ({ query, stop_code, wheelchair_accessible, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_GTFS, {
+          where: buildWhere([
+            query ? `search(${quote(query)})` : undefined,
+            stop_code ? `stop_code = ${quote(stop_code)}` : undefined,
+            wheelchair_accessible ? `wheelchair_boarding = ${quote('1')}` : undefined,
+          ]),
+          limit,
+        });
+        return jsonResult({
+          total_stops: data.total_count,
+          stops: data.results.map((row) => ({
+            stop_id: pickString(row, ['stop_id']),
+            stop_code: pickString(row, ['stop_code']),
+            stop_name: pickString(row, ['stop_name']),
+            stop_desc: pickString(row, ['stop_desc']),
+            zone_id: pickString(row, ['zone_id']),
+            location_type: pickString(row, ['location_type']),
+            parent_station: pickString(row, ['parent_station']),
+            wheelchair_boarding: pickString(row, ['wheelchair_boarding']),
+            stop_coordinates: row.stop_coordinates,
+          })),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to fetch Car Jaune stops');
       }
     }
   );
