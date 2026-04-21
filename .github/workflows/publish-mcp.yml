@@ -1,0 +1,49 @@
+name: Publish MCP Registry
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Set release version in server.json
+        env:
+          GIT_TAG: ${{ github.ref_name }}
+        run: |
+          node -e "const fs = require('node:fs'); const version = process.env.GIT_TAG.replace(/^v/, ''); const file = 'server.json'; const data = JSON.parse(fs.readFileSync(file, 'utf8')); data.version = version; if (Array.isArray(data.packages)) { data.packages = data.packages.map((pkg) => ({ ...pkg, version })); } fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');"
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      - name: Authenticate to MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: ./mcp-publisher publish

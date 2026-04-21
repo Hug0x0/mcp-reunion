@@ -1,0 +1,59 @@
+{
+  "name": "mcp-reunion",
+  "version": "1.0.2",
+  "mcpName": "io.github.Hug0x0/mcp-reunion",
+  "description": "MCP server for Réunion open data (data.regionreunion.com)",
+  "homepage": "https://github.com/Hug0x0/mcp-reunion",
+  "bugs": {
+    "url": "https://github.com/Hug0x0/mcp-reunion/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hug0x0/mcp-reunion.git"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "bin": {
+    "mcp-reunion": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "postbuild": "chmod +x dist/index.js",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "reunion",
+    "open-data",
+    "indian-ocean"
+  ],
+  "author": "Hug0x0",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0",
+    "vitest": "^1.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
