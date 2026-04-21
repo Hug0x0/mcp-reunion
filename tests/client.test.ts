@@ -24,6 +24,16 @@ describe('ReunionClient', () => {
     expect(Array.isArray(meta?.fields)).toBe(true);
   });
 
+  it('lists catalog datasets with a where clause', async () => {
+    const data = await client.listDatasets({
+      where: "search('trafic')",
+      limit: 5,
+    });
+    expect(data.total_count).toBeGreaterThan(0);
+    expect(data.results.length).toBeGreaterThan(0);
+    expect(data.results[0]).toHaveProperty('dataset_id');
+  });
+
   it('applies WHERE filters', async () => {
     const data = await client.getRecords('trafic-mja-rn-lareunion', {
       where: 'tmja > 10000',

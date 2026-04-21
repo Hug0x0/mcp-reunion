@@ -65,6 +65,20 @@ export class ReunionClient {
   }
 
   /**
+   * List datasets with an optional raw ODSQL where clause.
+   */
+  async listDatasets(
+    options: { where?: string; limit?: number; offset?: number } = {}
+  ): Promise<CatalogResponse> {
+    const url = this.buildUrl('/catalog/datasets', {
+      where: options.where,
+      limit: options.limit ?? 20,
+      offset: options.offset,
+    });
+    return this.fetchJson<CatalogResponse>(url);
+  }
+
+  /**
    * Fetch dataset metadata from the catalog
    */
   async getDatasetMetadata(datasetId: string): Promise<DatasetMetadata | undefined> {
