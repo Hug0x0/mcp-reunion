@@ -6,11 +6,14 @@ MCP server for [La Réunion](https://data.regionreunion.com/) public open data, 
 
 ## What it covers
 
-Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Currently **7 tools** across 3 modules:
+Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Currently **13 tools** across 6 modules:
 
 - **Weather** (`donnees-synop-essentielles-ommpublic`) — Météo France SYNOP observations for Réunion stations: temperature, humidity, wind, pressure, rainfall; plus a station-listing tool.
 - **Employment** (`demandeurs-d-emploi-…-a-la-reunion`) — Pôle emploi jobseeker counts by age/sex and by commune.
 - **Transport** (`trafic-mja-rn-lareunion`, `rn-classement-fonctionnel-lareunion`, `voie-velo-regionale`) — national road traffic (TMJA), functional classification, and the regional cycle network.
+- **Tourism** (`sentiers-marmailles-lareunion`, `bdcanyons-lareunion`, `lieux-remarquables-lareunion-wssoubik`) — family trails, canyoning routes, and SIT Soubik landmarks.
+- **Environment** (`world-air-quality-openaq`) — OpenAQ air-quality measurements at Réunion stations.
+- **Facilities** (`base-permanente-des-equipements-geolocalisee-la-reunion`, `equipements-sportifs`) — INSEE BPE facilities and the national sport-equipment inventory, filtered to Réunion.
 
 The `data.regionreunion.com` catalog exposes ~270 datasets. More modules can be added incrementally — see *Extending* below.
 
