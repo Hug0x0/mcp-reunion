@@ -28,7 +28,7 @@ export function registerTerritoryTools(server: McpServer): void {
       try {
         const data = await client.getRecords<RecordObject>(DATASET_DVF, {
           where: buildWhere([
-            year !== undefined ? `anneemut = ${year}` : undefined,
+            year !== undefined ? `datemut >= date'${year}-01-01' AND datemut < date'${year + 1}-01-01'` : undefined,
             insee ? `l_codinsee LIKE ${quote(`%${insee}%`)}` : undefined,
             type ? `libtypbien LIKE ${quote(`${type}%`)}` : undefined,
             min_value !== undefined ? `valeurfonc >= ${min_value}` : undefined,
