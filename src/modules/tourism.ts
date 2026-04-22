@@ -9,6 +9,7 @@ import { buildWhere, errorResult, jsonResult, pickNumber, pickString, quote } fr
 const DATASET_FAMILY_TRAILS = 'sentiers-marmailles-lareunion';
 const DATASET_CANYONS = 'bdcanyons-lareunion';
 const DATASET_LANDMARKS = 'lieux-remarquables-lareunion-wssoubik';
+const DATASET_FREQUENTATION = 'frequentation-touristique-mensuelle-a-la-reunion-depuis-2017';
 
 export function registerTourismTools(server: McpServer): void {
   server.tool(
@@ -68,6 +69,40 @@ export function registerTourismTools(server: McpServer): void {
         });
       } catch (error) {
         return errorResult(error instanceof Error ? error.message : 'Failed to fetch canyons');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_get_tourism_frequentation',
+    'Get monthly Réunion tourism frequentation since 2017: external tourist arrivals, purpose breakdown (business, leisure, family, other) and spending.',
+    {
+      year: z.string().optional().describe('Year filter, e.g. "2024"'),
+      limit: z.number().int().min(1).max(200).default(24),
+    },
+    async ({ year, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_FREQUENTATION, {
+          where: buildWhere([year ? `annee = ${quote(year)}` : undefined]),
+          order_by: 'date DESC',
+          limit,
+        });
+        return jsonResult({
+          total_months: data.total_count,
+          series: data.results.map((row) => ({
+            date: pickString(row, ['date']),
+            month: pickString(row, ['mois']),
+            year: pickString(row, ['annee']),
+            external_tourists: pickNumber(row, ['touristes_exterieurs']),
+            business: pickString(row, ['affaires']),
+            family: pickNumber(row, ['affinitaire']),
+            leisure: pickNumber(row, ['agrement']),
+            other: pickNumber(row, ['autres']),
+            spending_eur: pickNumber(row, ['depenses_des_touristes_exterieurs']),
+          })),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to fetch tourism frequentation');
       }
     }
   );
