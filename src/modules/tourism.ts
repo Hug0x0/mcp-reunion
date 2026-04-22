@@ -10,6 +10,9 @@ const DATASET_FAMILY_TRAILS = 'sentiers-marmailles-lareunion';
 const DATASET_CANYONS = 'bdcanyons-lareunion';
 const DATASET_LANDMARKS = 'lieux-remarquables-lareunion-wssoubik';
 const DATASET_FREQUENTATION = 'frequentation-touristique-mensuelle-a-la-reunion-depuis-2017';
+const DATASET_HIKING = 'circuits-rendonnees-lareunion-wssoubik';
+const DATASET_CULTURAL_POIS = 'poles-attractivite-culture-loisirs-lareunion';
+const DATASET_COASTAL_TRAIL = 'sentier-littoral-est-lareunion';
 
 export function registerTourismTools(server: McpServer): void {
   server.tool(
@@ -69,6 +72,111 @@ export function registerTourismTools(server: McpServer): void {
         });
       } catch (error) {
         return errorResult(error instanceof Error ? error.message : 'Failed to fetch canyons');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_list_hiking_circuits',
+    'List the main hiking circuits of Réunion from the SIT Soubik catalog (distance, elevation, difficulty, duration).',
+    {
+      difficulty: z.string().optional().describe('Difficulty filter (prefix match)'),
+      open_only: z.boolean().default(false).describe('Return only circuits currently open ("Oui")'),
+      limit: z.number().int().min(1).max(200).default(50),
+    },
+    async ({ difficulty, open_only, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_HIKING, {
+          where: buildWhere([
+            difficulty ? `difficulte LIKE ${quote(`${difficulty}%`)}` : undefined,
+            open_only ? `is_ouvert = ${quote('Oui')}` : undefined,
+          ]),
+          limit,
+        });
+        return jsonResult({
+          total_circuits: data.total_count,
+          circuits: data.results.map((row) => ({
+            name: pickString(row, ['nom']),
+            type: pickString(row, ['type']),
+            hiking_types: pickString(row, ['type_rando_names']),
+            classification: pickString(row, ['classification_names']),
+            difficulty: pickString(row, ['difficulte']),
+            distance_km: pickNumber(row, ['distance_parcourue']),
+            total_duration_minutes: pickNumber(row, ['duree_minutes_total']),
+            elevation_min_m: pickNumber(row, ['denivele_min']),
+            elevation_max_m: pickNumber(row, ['denivele_max']),
+            altitude_min_m: pickNumber(row, ['altitude_min']),
+            altitude_max_m: pickNumber(row, ['altitude_max']),
+            zone: pickString(row, ['zone_translations_item_nom']),
+            open: pickString(row, ['is_ouvert']),
+          })),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to list hiking circuits');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_list_cultural_leisure_pois',
+    'List Réunion cultural and leisure attraction points (IGN BD TOPO-derived catalog).',
+    {
+      nature: z.string().optional().describe('Nature filter (prefix match)'),
+      limit: z.number().int().min(1).max(300).default(100),
+    },
+    async ({ nature, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_CULTURAL_POIS, {
+          where: buildWhere([nature ? `nature LIKE ${quote(`${nature}%`)}` : undefined]),
+          limit,
+        });
+        return jsonResult({
+          total_pois: data.total_count,
+          pois: data.results.map((row) => ({
+            id: pickString(row, ['id']),
+            toponym: pickString(row, ['toponyme']),
+            nature: pickString(row, ['nature']),
+            origin: pickString(row, ['origine']),
+            importance: pickString(row, ['importance']),
+          })),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to list cultural/leisure POIs');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_get_east_coastal_trail',
+    'Get segments of the East-coast coastal trail of Réunion (width, state, surfacing, vegetation, access notes).',
+    {
+      state: z.string().optional().describe('Trail state filter (prefix match)'),
+      limit: z.number().int().min(1).max(100).default(50),
+    },
+    async ({ state, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_COASTAL_TRAIL, {
+          where: buildWhere([state ? `etat LIKE ${quote(`${state}%`)}` : undefined]),
+          limit,
+        });
+        return jsonResult({
+          total_segments: data.total_count,
+          segments: data.results.map((row) => ({
+            section: pickString(row, ['troncon']),
+            sequence: pickString(row, ['sequence']),
+            variant: pickString(row, ['variante']),
+            width_m: pickNumber(row, ['largeur']),
+            length_m: pickNumber(row, ['longueur']),
+            state: pickString(row, ['etat']),
+            surfacing: pickString(row, ['revetement']),
+            vegetation: pickString(row, ['vegetation']),
+            vegetation_density: pickString(row, ['densite']),
+            access: pickString(row, ['acces']),
+            notes: pickString(row, ['notes']),
+          })),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to fetch coastal trail');
       }
     }
   );

@@ -17,7 +17,7 @@ import { registerTransportTools } from './transport.js';
 import { registerUrbanismTools } from './urbanism.js';
 import { registerWeatherTools } from './weather.js';
 
-export const TOOL_COUNT = 33;
+export const TOOL_COUNT = 37;
 
 /**
  * Register all tool modules with the MCP server.
