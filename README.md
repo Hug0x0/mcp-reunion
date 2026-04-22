@@ -6,7 +6,7 @@ MCP server for [La Réunion](https://data.regionreunion.com/) public open data, 
 
 ## What it covers
 
-Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Currently **29 tools** across 13 modules. A **catalog** module lets the client reach any of the ~270 datasets that aren't wired to a dedicated tool yet.
+Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Currently **52 tools** across 17 modules. A **catalog** module lets the client reach any of the ~270 datasets that aren't wired to a dedicated tool yet.
 
 ## Modules
 
@@ -22,6 +22,7 @@ Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Current
 - **Housing** (`logements-et-logements-sociaux-…`, `couts-et-surfaces-moyens-…`) — departmental housing atlas and social-housing costs.
 - **Urbanism** (`base-permanente-des-plu-de-la-reunion`, `liste-des-permis-de-constuire-…`) — PLU zoning and non-residential building permits (Sitadel).
 - **Possession** (`donnees-essentielles-marches-publics-…`, `subventions-attribuees-…`) — La Possession public procurement contracts and association grants.
+- **Geography** (`ban-lareunion`, `bal-la-possession`, `communes-millesime-france`, `cantons-millesime-france`, `intercommunalites-millesime-france`, `iris-millesime-france`, `les-20-quartiers-villesaintdenis`) — BAN/BAL addresses and the official communes / cantons / EPCI / IRIS / Saint-Denis quarters reference layers.
 - **Catalog** (meta) — `search_catalog`, `inspect_dataset`, `query_dataset`. Lets the agent discover and query any of the ~270 datasets not covered by a dedicated module, with a raw ODSQL `where` clause as escape hatch.
 
 The `data.regionreunion.com` catalog exposes ~270 datasets. More modules can be added incrementally — see *Extending* below.
