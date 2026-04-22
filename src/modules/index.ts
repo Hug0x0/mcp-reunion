@@ -2,6 +2,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
+import { registerAdministrationTools } from './administration.js';
 import { registerCatalogTools } from './catalog.js';
 import { registerCultureTools } from './culture.js';
 import { registerEconomyTools } from './economy.js';
@@ -22,12 +23,13 @@ import { registerTransportTools } from './transport.js';
 import { registerUrbanismTools } from './urbanism.js';
 import { registerWeatherTools } from './weather.js';
 
-export const TOOL_COUNT = 82;
+export const TOOL_COUNT = 88;
 
 /**
  * Register all tool modules with the MCP server.
  */
 export function registerAllTools(server: McpServer): void {
+  registerAdministrationTools(server);
   registerCatalogTools(server);
   registerCultureTools(server);
   registerEconomyTools(server);
