@@ -8,6 +8,7 @@ import { buildWhere, errorResult, jsonResult, pickNumber, pickString, quote } fr
 
 const DATASET_BPE = 'base-permanente-des-equipements-geolocalisee-la-reunion';
 const DATASET_SPORT = 'equipements-sportifs';
+const DATASET_POOLS = 'data-bassin-de-natation';
 
 export function registerFacilityTools(server: McpServer): void {
   server.tool(
@@ -44,6 +45,43 @@ export function registerFacilityTools(server: McpServer): void {
         });
       } catch (error) {
         return errorResult(error instanceof Error ? error.message : 'Failed to search facilities');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_list_swimming_pools',
+    'List swimming-pool installations in Réunion with commune, equipment type and accessibility information.',
+    {
+      commune: z.string().optional().describe('Commune filter (prefix match)'),
+      type: z.string().optional().describe('Equipment type filter (prefix match), e.g. "Bassin"'),
+      limit: z.number().int().min(1).max(300).default(50),
+    },
+    async ({ commune, type, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_POOLS, {
+          where: buildWhere([
+            commune ? `commune LIKE ${quote(`${commune}%`)}` : undefined,
+            type ? `type_d_equipement_sportif LIKE ${quote(`${type}%`)}` : undefined,
+          ]),
+          limit,
+        });
+        return jsonResult({
+          total_pools: data.total_count,
+          pools: data.results.map((row) => ({
+            installation: pickString(row, ['nom_de_l_installation_sportive']),
+            equipment: pickString(row, ['nom_de_l_equipement_sportif']),
+            type: pickString(row, ['type_d_equipement_sportif']),
+            family: pickString(row, ['famille_d_equipement_sportif']),
+            address: pickString(row, ['numero_type_et_nom_de_la_voie']),
+            postal_code: pickString(row, ['code_postal']),
+            commune: pickString(row, ['commune']),
+            accessible_reduced_mobility: pickString(row, ['accessibilite_de_l_installation_en_faveur_des_personnes_en_situation_de_handicap']),
+            public_transport_accessible: pickString(row, ['accessibilite_de_l_installation_en_transport_en_commun']),
+          })),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to list swimming pools');
       }
     }
   );
