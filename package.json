@@ -1,6 +1,6 @@
 {
   "name": "mcp-reunion",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "mcpName": "io.github.Hug0x0/mcp-reunion",
   "description": "MCP server for Réunion open data (data.regionreunion.com)",
   "homepage": "https://github.com/Hug0x0/mcp-reunion",
@@ -28,6 +28,7 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
+    "test:smoke": "node scripts/smoke-test.mjs",
     "prepack": "npm run build",
     "prepublishOnly": "npm run build"
   },
