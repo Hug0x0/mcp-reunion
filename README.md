@@ -6,23 +6,29 @@ MCP server for [La Réunion](https://data.regionreunion.com/) public open data, 
 
 ## What it covers
 
-Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Currently **52 tools** across 17 modules. A **catalog** module lets the client reach any of the ~270 datasets that aren't wired to a dedicated tool yet.
+Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Currently **88 tools** across 20 modules. A **catalog** module lets the client reach any of the ~270 datasets that aren't wired to a dedicated tool yet.
 
 ## Modules
 
-- **Weather** (`donnees-synop-essentielles-ommpublic`) — Météo France SYNOP observations for Réunion stations: temperature, humidity, wind, pressure, rainfall; plus a station-listing tool.
+- **Administration** — public-admin local counters (annuaire), RNA associations registry, elected officials, 2022 legislative 1st-round results per polling station, QPV priority neighborhoods, baby names since 2000.
+- **Culture** — Musées de France directory, Joconde collection search, public libraries, festivals, annual museum attendance.
+- **Economy** — SIRENE v3 establishment search, INSEE monthly CPI, FEDER 2014-2020 beneficiaries, coworking spaces, IRIS-level income/poverty indicators.
+- **Education** — middle-school & lycée IPS, Génération 2024 label, Parcoursup programs, geolocated school directory, REP/REP+ priority-education schools, higher-ed enrollment, training orgs/CFA.
 - **Employment** (`demandeurs-d-emploi-…-a-la-reunion`) — Pôle emploi jobseeker counts by age/sex and by commune.
-- **Transport** (`trafic-mja-rn-lareunion`, `rn-classement-fonctionnel-lareunion`, `voie-velo-regionale`, `donnees-gtfs-lareunion`) — national road traffic (TMJA), functional classification, regional cycle network, and Car Jaune GTFS stops.
-- **Tourism** (`sentiers-marmailles-lareunion`, `bdcanyons-lareunion`, `lieux-remarquables-lareunion-wssoubik`) — family trails, canyoning routes, and SIT Soubik landmarks.
-- **Environment** (`world-air-quality-openaq`) — OpenAQ air-quality measurements at Réunion stations.
+- **Environment** — OpenAQ air-quality, household waste tonnage, RGE eco-renovation companies, ZNIEFF protected zones, Parc national perimeters, petroleum-product consumption.
 - **Facilities** (`base-permanente-des-equipements-geolocalisee-la-reunion`, `equipements-sportifs`) — INSEE BPE facilities and the national sport-equipment inventory, filtered to Réunion.
-- **Education** (`indices-de-position-sociale-dans-les-colleges-…`, `etablissements-labellises-generation-2024-…`, `cartographie-des-formations-parcoursup-…`) — middle-school IPS, Génération 2024 label, Parcoursup programs.
-- **Health** (`annuaire-des-professionnels-de-santepublic`) — CNAM health-professional directory filtered to Réunion.
-- **Telecom** (`sites-mobiles-5g-a-la-reunion`, `arcep_regions`) — 5G cell sites per operator and FttH deployment coverage.
-- **Housing** (`logements-et-logements-sociaux-…`, `couts-et-surfaces-moyens-…`) — departmental housing atlas and social-housing costs.
-- **Urbanism** (`base-permanente-des-plu-de-la-reunion`, `liste-des-permis-de-constuire-…`) — PLU zoning and non-residential building permits (Sitadel).
-- **Possession** (`donnees-essentielles-marches-publics-…`, `subventions-attribuees-…`) — La Possession public procurement contracts and association grants.
 - **Geography** (`ban-lareunion`, `bal-la-possession`, `communes-millesime-france`, `cantons-millesime-france`, `intercommunalites-millesime-france`, `iris-millesime-france`, `les-20-quartiers-villesaintdenis`) — BAN/BAL addresses and the official communes / cantons / EPCI / IRIS / Saint-Denis quarters reference layers.
+- **Health** — CNAM health-professional directory, COVID stats, pathologies, FINESS, Possession health pros.
+- **Hospitality** (`etablissements-touristiques-lareunion-wssoubik`, `hebergements-classespublic`, `localisation-potentielle-ecolodge-lareunion`) — tourism establishments, classified accommodations, ecolodge zones.
+- **Housing** (`logements-et-logements-sociaux-…`, `couts-et-surfaces-moyens-…`) — departmental housing atlas and social-housing costs.
+- **Possession** (`donnees-essentielles-marches-publics-…`, `subventions-attribuees-…`) — La Possession public procurement contracts and association grants.
+- **Social** — CAF beneficiaries and prestation amounts, childcare facilities (Saint-Denis + Possession).
+- **Telecom** (`sites-mobiles-5g-a-la-reunion`, `arcep_regions`) — 5G cell sites per operator and FttH deployment coverage.
+- **Territory** — DVF real-estate transactions, INSEE commune population, La Poste postal codes, `potentiel foncier` land reserves, Sitadel residential construction permits.
+- **Tourism** — family trails, canyoning routes, SIT Soubik landmarks & cultural POIs, hiking circuits, coastal trail, pools, monthly tourism frequentation since 2017.
+- **Transport** — TMJA road traffic, functional road classification, Car Jaune GTFS stops/routes, regional cycle network, road accidents (2016-2019), vehicle technical-inspection prices, daily flow & speed limits on national roads.
+- **Urbanism** (`base-permanente-des-plu-de-la-reunion`, `liste-des-permis-de-constuire-…`) — PLU zoning and non-residential building permits (Sitadel).
+- **Weather** (`donnees-synop-essentielles-ommpublic`) — Météo France SYNOP observations for Réunion stations: temperature, humidity, wind, pressure, rainfall; plus a station-listing tool.
 - **Catalog** (meta) — `search_catalog`, `inspect_dataset`, `query_dataset`. Lets the agent discover and query any of the ~270 datasets not covered by a dedicated module, with a raw ODSQL `where` clause as escape hatch.
 
 The `data.regionreunion.com` catalog exposes ~270 datasets. More modules can be added incrementally — see *Extending* below.
