@@ -9,6 +9,23 @@ import {
 } from './types.js';
 import { quote, normalizeText } from './utils/helpers.js';
 
+// Datasets that are stable registries (INSEE millésimé layers, national nomenclatures).
+// They update at most once a year, so caching their responses per-session avoids
+// thousands of redundant upstream calls when the agent cross-references communes / IRIS
+// across many tools in a single conversation.
+const REFERENTIAL_DATASETS: ReadonlySet<string> = new Set([
+  'communes-millesime-france',
+  'cantons-millesime-france',
+  'intercommunalites-millesime-france',
+  'iris-millesime-france',
+  'les-20-quartiers-villesaintdenis',
+  'quartiers-prioritaires-de-la-politique-de-la-ville-qpv',
+  'laposte_hexasmaldatanova',
+  'pnrun_2021',
+]);
+
+const REFERENTIAL_TTL_MS = 24 * 60 * 60 * 1000;
+
 /**
  * HTTP client for OpenDataSoft API (data.regionreunion.com)
  * No authentication required - completely free API
@@ -18,6 +35,7 @@ export class ReunionClient {
   private readonly timeout = 30000;
   private readonly maxRetries = 2;
   private readonly metadataCache = new Map<string, Promise<DatasetMetadata | undefined>>();
+  private readonly recordsCache = new Map<string, { value: unknown; expiresAt: number }>();
 
   /**
    * Fetch records from a dataset
@@ -27,7 +45,27 @@ export class ReunionClient {
     params: ODSQueryParams = {}
   ): Promise<ODSResponse<T>> {
     const url = this.buildUrl(`/catalog/datasets/${datasetId}/records`, params);
+
+    if (REFERENTIAL_DATASETS.has(datasetId)) {
+      const now = Date.now();
+      const cached = this.recordsCache.get(url);
+      if (cached && cached.expiresAt > now) {
+        return cached.value as ODSResponse<T>;
+      }
+      const value = await this.fetchJson<ODSResponse<T>>(url);
+      this.recordsCache.set(url, { value, expiresAt: now + REFERENTIAL_TTL_MS });
+      return value;
+    }
+
     return this.fetchJson<ODSResponse<T>>(url);
+  }
+
+  /**
+   * Clear the in-memory caches. Intended for tests.
+   */
+  clearCaches(): void {
+    this.metadataCache.clear();
+    this.recordsCache.clear();
   }
 
   /**
