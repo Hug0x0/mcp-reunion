@@ -209,7 +209,7 @@ export function registerTransportTools(server: McpServer): void {
           where: buildWhere([
             year !== undefined ? `an = ${year}` : undefined,
             severity !== undefined ? `grav = ${severity}` : undefined,
-            commune ? `nom_com LIKE ${quote(`${commune}%`)}` : undefined,
+            commune ? `com_name LIKE ${quote(`${commune}%`)}` : undefined,
           ]),
           order_by: 'datetime DESC',
           limit,
@@ -219,7 +219,7 @@ export function registerTransportTools(server: McpServer): void {
           accidents: data.results.map((row) => ({
             accident_id: pickString(row, ['num_acc']),
             datetime: pickString(row, ['datetime']),
-            commune: pickString(row, ['nom_com']),
+            commune: pickString(row, ['com_name', 'nom_com']),
             address: pickString(row, ['adr']),
             lat: pickNumber(row, ['lat']),
             lon: pickNumber(row, ['long']),
