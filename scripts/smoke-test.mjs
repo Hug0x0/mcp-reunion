@@ -72,6 +72,12 @@ const TESTS = [
   { pr: 26, tool: 'list_priority_neighborhoods', dataset: 'quartiers-prioritaires-de-la-politique-de-la-ville-qpv', params: { limit: 1 } },
   { pr: 26, tool: 'search_baby_names', dataset: 'prenomsdpt974depuis2000', params: { order_by: 'nombre DESC', limit: 1 } },
   { pr: 26, tool: 'search_baby_names (filtered)', dataset: 'prenomsdpt974depuis2000', params: { where: "preusuel LIKE 'LEA%' AND annais = '2020'", limit: 1 } },
+
+  // --- Long-tail (administration + environment extensions)
+  { pr: 35, tool: 'get_legislative_2022_round2', dataset: 'resultats-des-elections-legislatives-2022-2nd-tour-par-bureau-de-vote-a-la-reuni', params: { order_by: 'voix DESC', limit: 1 } },
+  { pr: 35, tool: 'get_presidential_2022_round1', dataset: 'resultats-des-elections-presidentielles-2022-1er-tour-par-bureau-de-vote-a-la-re', params: { order_by: 'voix DESC', limit: 1 } },
+  { pr: 35, tool: 'search_boamp', dataset: 'boamp', params: { order_by: 'dateparution DESC', limit: 1 } },
+  { pr: 35, tool: 'list_water_management_points', dataset: 'les-points-d-activite-ou-d-interet-la-gestion-des-eaux', params: { limit: 1 } },
 ];
 
 function buildUrl(dataset, params) {

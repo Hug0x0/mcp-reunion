@@ -12,6 +12,7 @@ const DATASET_RGE_COMPANIES = 'liste-des-entreprises-rge-2';
 const DATASET_ZNIEFF = 'zones-naturelles-d-interet-ecologique-faunistique-et-floristique-a-la-reunion';
 const DATASET_PNRUN = 'pnrun_2021';
 const DATASET_PETROLEUM = 'donnees-locales-de-consommation-de-produits-petroliers-a-la-reunion';
+const DATASET_WATER_POIS = 'les-points-d-activite-ou-d-interet-la-gestion-des-eaux';
 
 export function registerEnvironmentTools(server: McpServer): void {
   server.tool(
@@ -215,6 +216,39 @@ export function registerEnvironmentTools(server: McpServer): void {
         });
       } catch (error) {
         return errorResult(error instanceof Error ? error.message : 'Failed to fetch petroleum consumption');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_list_water_management_points',
+    'List points of activity / interest related to water management in La Réunion (intakes, treatment plants, etc.).',
+    {
+      nature: z.string().optional().describe('Nature filter (prefix match, e.g. "Captage")'),
+      origine: z.string().optional().describe('Origin / source filter (prefix match)'),
+      limit: z.number().int().min(1).max(200).default(50),
+    },
+    async ({ nature, origine, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_WATER_POIS, {
+          where: buildWhere([
+            nature ? `nature LIKE ${quote(`${nature}%`)}` : undefined,
+            origine ? `origine LIKE ${quote(`${origine}%`)}` : undefined,
+          ]),
+          limit,
+        });
+        return jsonResult({
+          total_points: data.total_count,
+          points: data.results.map((row) => ({
+            id: pickString(row, ['id']),
+            origin: pickString(row, ['origine']),
+            nature: pickString(row, ['nature']),
+            toponym: pickString(row, ['toponyme']),
+            importance: pickString(row, ['importance']),
+          })),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to list water points');
       }
     }
   );
