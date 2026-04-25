@@ -89,6 +89,12 @@ export function pickValue<T = unknown>(
     if (candidate in record) {
       const value = record[candidate];
       if (value !== undefined && value !== null) {
+        // OpenDataSoft v2.1 wraps some text fields as single-element arrays
+        // (e.g. com_name → ["Saint-Denis"]). Unwrap so downstream pickers
+        // see the scalar they expect.
+        if (Array.isArray(value) && value.length === 1) {
+          return value[0] as T;
+        }
         return value as T;
       }
     }

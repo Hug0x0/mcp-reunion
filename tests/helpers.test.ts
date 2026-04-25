@@ -59,6 +59,14 @@ describe('pickValue / pickString / pickNumber / pickBoolean', () => {
     expect(pickValue(row, ['missing'])).toBeUndefined();
   });
 
+  it('pickValue unwraps single-element arrays (ODS v2.1 wraps some text fields like com_name → ["Saint-Denis"])', () => {
+    expect(pickValue({ com_name: ['Saint-Denis'] }, ['com_name'])).toBe('Saint-Denis');
+    expect(pickString({ com_code: ['97411'] }, ['com_code'])).toBe('97411');
+    expect(pickNumber({ population: [149337] }, ['population'])).toBe(149337);
+    // Multi-element arrays are kept as-is (still match downstream typeof check fails → undefined)
+    expect(pickString({ tags: ['a', 'b'] }, ['tags'])).toBeUndefined();
+  });
+
   it('pickString coerces numbers to strings', () => {
     expect(pickString(row, ['population'])).toBe('149337');
     expect(pickString(row, ['name'])).toBe('Saint-Denis');
