@@ -6,16 +6,17 @@ MCP server for [La Réunion](https://data.regionreunion.com/) public open data, 
 
 ## What it covers
 
-Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Currently **88 tools** across 20 modules. A **catalog** module lets the client reach any of the ~270 datasets that aren't wired to a dedicated tool yet.
+Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Currently **96 tools** across 21 modules. A **catalog** module lets the client reach any of the ~270 datasets that aren't wired to a dedicated tool yet.
 
 ## Modules
 
-- **Administration** — public-admin local counters (annuaire), RNA associations registry, elected officials, 2022 legislative 1st-round results per polling station, QPV priority neighborhoods, baby names since 2000.
+- **Administration** — public-admin local counters (annuaire), RNA associations registry, elected officials, 2022 presidential & legislative results per polling station (rounds 1 & 2 for legislative), BOAMP public-procurement notices, QPV priority neighborhoods, baby names since 2000.
+- **Commune** — composite tools that join several datasets in parallel: \`reunion_find_commune\` (fuzzy resolver to canonical INSEE code), \`reunion_commune_profile\` (population + QPV + schools + businesses + accidents + museums in one call), \`reunion_compare_communes\` (side-by-side on 2-5 communes), \`reunion_iris_profile\` (IRIS metadata + 2014 income/poverty/inequality indicators).
 - **Culture** — Musées de France directory, Joconde collection search, public libraries, festivals, annual museum attendance.
 - **Economy** — SIRENE v3 establishment search, INSEE monthly CPI, FEDER 2014-2020 beneficiaries, coworking spaces, IRIS-level income/poverty indicators.
 - **Education** — middle-school & lycée IPS, Génération 2024 label, Parcoursup programs, geolocated school directory, REP/REP+ priority-education schools, higher-ed enrollment, training orgs/CFA.
 - **Employment** (`demandeurs-d-emploi-…-a-la-reunion`) — Pôle emploi jobseeker counts by age/sex and by commune.
-- **Environment** — OpenAQ air-quality, household waste tonnage, RGE eco-renovation companies, ZNIEFF protected zones, Parc national perimeters, petroleum-product consumption.
+- **Environment** — OpenAQ air-quality, household waste tonnage, RGE eco-renovation companies, ZNIEFF protected zones, Parc national perimeters, petroleum-product consumption, water-management points of interest.
 - **Facilities** (`base-permanente-des-equipements-geolocalisee-la-reunion`, `equipements-sportifs`) — INSEE BPE facilities and the national sport-equipment inventory, filtered to Réunion.
 - **Geography** (`ban-lareunion`, `bal-la-possession`, `communes-millesime-france`, `cantons-millesime-france`, `intercommunalites-millesime-france`, `iris-millesime-france`, `les-20-quartiers-villesaintdenis`) — BAN/BAL addresses and the official communes / cantons / EPCI / IRIS / Saint-Denis quarters reference layers.
 - **Health** — CNAM health-professional directory, COVID stats, pathologies, FINESS, Possession health pros.
