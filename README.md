@@ -6,7 +6,7 @@ MCP server for [La Réunion](https://data.regionreunion.com/) public open data, 
 
 ## What it covers
 
-Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Currently **96 tools** across 21 modules. A **catalog** module lets the client reach any of the ~270 datasets that aren't wired to a dedicated tool yet.
+Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A small **National elections** module also queries `tabular-api.data.gouv.fr` for the 2024 anticipated legislative + European results that the regional portal doesn't carry. Currently **99 tools** across 22 modules. A **catalog** module lets the client reach any of the ~270 datasets at `data.regionreunion.com` that aren't wired to a dedicated tool yet.
 
 ## Modules
 
@@ -21,6 +21,7 @@ Backed by the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. Current
 - **Geography** (`ban-lareunion`, `bal-la-possession`, `communes-millesime-france`, `cantons-millesime-france`, `intercommunalites-millesime-france`, `iris-millesime-france`, `les-20-quartiers-villesaintdenis`) — BAN/BAL addresses and the official communes / cantons / EPCI / IRIS / Saint-Denis quarters reference layers.
 - **Health** — CNAM health-professional directory, COVID stats, pathologies, FINESS, Possession health pros.
 - **Hospitality** (`etablissements-touristiques-lareunion-wssoubik`, `hebergements-classespublic`, `localisation-potentielle-ecolodge-lareunion`) — tourism establishments, classified accommodations, ecolodge zones.
+- **National elections** (`tabular-api.data.gouv.fr` — Ministère de l'Intérieur) — 2024 anticipated legislative results (rounds 1 & 2) per Réunion circonscription, and 2024 European results aggregated for département 974. Complements the 2022 results carried by the regional portal.
 - **Housing** (`logements-et-logements-sociaux-…`, `couts-et-surfaces-moyens-…`) — departmental housing atlas and social-housing costs.
 - **Possession** (`donnees-essentielles-marches-publics-…`, `subventions-attribuees-…`) — La Possession public procurement contracts and association grants.
 - **Social** — CAF beneficiaries and prestation amounts, childcare facilities (Saint-Denis + Possession).
