@@ -244,4 +244,146 @@ export function registerCommuneTools(server: McpServer): void {
       }
     }
   );
+
+  server.tool(
+    'reunion_compare_communes',
+    'Side-by-side comparison of 2-5 Réunion communes on population, QPV count, active SIRENE establishments, 2019 accidents, and priority-education schools. All dimensions fetched in parallel.',
+    {
+      communes: z
+        .array(z.string())
+        .min(2)
+        .max(5)
+        .describe('2 to 5 commune names (prefix match each)'),
+    },
+    async ({ communes }) => {
+      const fetchOne = async (commune: string) => {
+        const prefix = `${commune}%`;
+        const [pop, qpv, sirene, accidents, priorityEd] = await Promise.all([
+          settle(
+            'population',
+            client.getRecords<RecordObject>('population-francaise-communespublic', {
+              where: `code_departement = ${quote('974')} AND nom_de_la_commune LIKE ${quote(prefix)}`,
+              order_by: 'annee_recensement DESC',
+              limit: 1,
+            })
+          ),
+          settle(
+            'qpv',
+            client.getRecords<RecordObject>('quartiers-prioritaires-de-la-politique-de-la-ville-qpv', {
+              where: `commune_qp LIKE ${quote(prefix)}`,
+              limit: 1,
+            })
+          ),
+          settle(
+            'sirene',
+            client.getRecords<RecordObject>('base-sirene-v3-lareunion', {
+              where: `libellecommuneetablissement LIKE ${quote(prefix)} AND etatadministratifetablissement = ${quote('Actif')}`,
+              limit: 1,
+            })
+          ),
+          settle(
+            'accidents_2019',
+            client.getRecords<RecordObject>(
+              'bases-de-donnees-annuelles-des-accidents-corporels-de-la-circulation-routiere',
+              {
+                where: `com_name LIKE ${quote(prefix)} AND an = 2019`,
+                limit: 1,
+              }
+            )
+          ),
+          settle(
+            'priority_ed',
+            client.getRecords<RecordObject>('etablissements-de-l-education-prioritaire-a-la-reunion', {
+              where: `nom_commune LIKE ${quote(prefix)}`,
+              limit: 1,
+            })
+          ),
+        ]);
+
+        const popRow = pop.value?.results[0];
+        return {
+          query: commune,
+          matched: popRow ? pickString(popRow, ['nom_de_la_commune']) : null,
+          insee_code: popRow ? pickString(popRow, ['code_insee']) : null,
+          population_total: popRow ? pickNumber(popRow, ['population_totale']) : null,
+          area_km2: popRow ? pickNumber(popRow, ['superficie']) : null,
+          qpv_count: qpv.value?.total_count ?? null,
+          active_sirene: sirene.value?.total_count ?? null,
+          accidents_2019: accidents.value?.total_count ?? null,
+          priority_education_schools: priorityEd.value?.total_count ?? null,
+        };
+      };
+
+      const rows = await Promise.all(communes.map(fetchOne));
+      return jsonResult({ comparison: rows });
+    }
+  );
+
+  server.tool(
+    'reunion_iris_profile',
+    'Profile of a single IRIS (fine statistical area used by INSEE): commune membership, income / poverty / inequality indicators (2014 millésime).',
+    {
+      iris_code: z.string().describe('IRIS code (9 digits, e.g. "974110101")'),
+    },
+    async ({ iris_code }) => {
+      const [meta, income] = await Promise.all([
+        settle(
+          'meta',
+          client.getRecords<RecordObject>('iris-millesime-france', {
+            where: `iris_code = ${quote(iris_code)}`,
+            order_by: 'year DESC',
+            limit: 1,
+          })
+        ),
+        settle(
+          'income',
+          client.getRecords<RecordObject>('revenus-declares-pauvrete-et-niveau-de-vie-en-2015-irispublic', {
+            where: `iris = ${quote(iris_code)}`,
+            limit: 1,
+          })
+        ),
+      ]);
+
+      const metaRow = meta.value?.results[0];
+      const incomeRow = income.value?.results[0];
+
+      if (!metaRow && meta.error) {
+        return errorResult(`IRIS lookup failed: ${meta.error}`);
+      }
+
+      return jsonResult({
+        iris: metaRow
+          ? {
+              code: pickString(metaRow, ['iris_code']),
+              name: pickString(metaRow, ['iris_name']),
+              type: pickString(metaRow, ['iris_type']),
+              commune: pickString(metaRow, ['com_name']),
+              commune_code: pickString(metaRow, ['com_code']),
+              epci: pickString(metaRow, ['epci_name']),
+              grand_quartier: pickString(metaRow, ['iris_grd_quart_name']),
+              year: pickString(metaRow, ['year']),
+            }
+          : null,
+        income_poverty_2014: income.error
+          ? { error: income.error }
+          : incomeRow
+            ? {
+                households_population: pickNumber(incomeRow, ['pop_menages_en_2014_princ']),
+                poverty_rate_pct: pickNumber(incomeRow, ['dec_tp6014']),
+                median_income: pickNumber(incomeRow, ['dec_med14']),
+                q1_income: pickNumber(incomeRow, ['dec_q114']),
+                q3_income: pickNumber(incomeRow, ['dec_q314']),
+                d1_income: pickNumber(incomeRow, ['dec_d114']),
+                d9_income: pickNumber(incomeRow, ['dec_d914']),
+                interdecile_ratio: pickNumber(incomeRow, ['dec_rd14']),
+                gini: pickNumber(incomeRow, ['dec_gi14']),
+                share_wages_pct: pickNumber(incomeRow, ['dec_ptsa14']),
+                share_unemployment_pct: pickNumber(incomeRow, ['dec_pcho14']),
+                share_benefits_pct: pickNumber(incomeRow, ['dec_pben14']),
+                share_pensions_pct: pickNumber(incomeRow, ['dec_ppen14']),
+              }
+            : null,
+      });
+    }
+  );
 }
