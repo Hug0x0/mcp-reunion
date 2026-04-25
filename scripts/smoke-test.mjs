@@ -80,6 +80,13 @@ const TESTS = [
   { pr: 35, tool: 'list_water_management_points', dataset: 'les-points-d-activite-ou-d-interet-la-gestion-des-eaux', params: { limit: 1 } },
 ];
 
+// data.gouv.fr tabular-api smoke targets — separate base URL, separate run.
+const DATA_GOUV_TESTS = [
+  { tool: 'legislative_2024_round1', resource: '5163f2e3-1362-4c35-89a0-1934bb74f2d9' },
+  { tool: 'legislative_2024_round2', resource: '41ed46cd-77c2-4ecc-b8eb-374aa953ca39' },
+  { tool: 'european_2024_by_dept',   resource: 'b77cc4da-644f-4323-b6f7-ae6fe9b33f86' },
+];
+
 function buildUrl(dataset, params) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
@@ -122,6 +129,26 @@ async function run() {
       console.log(pad('#' + r.pr, 5) + pad(r.status, 7) + pad('-', 10) + pad('-', 5) + r.tool + '  —  [' + (r.http || '?') + '] ' + errSnippet);
     }
   }
+  // data.gouv.fr tabular-api smoke
+  for (const t of DATA_GOUV_TESTS) {
+    const u = `https://tabular-api.data.gouv.fr/api/resources/${t.resource}/data/?${encodeURIComponent('Code département')}__exact=974&page_size=1`;
+    try {
+      const res = await fetch(u);
+      const body = await res.json();
+      if (!res.ok) {
+        fail++;
+        console.log(pad('dgF', 5) + pad('FAIL', 7) + pad('-', 10) + pad('-', 5) + t.tool + '  —  [' + res.status + ']');
+        continue;
+      }
+      const got = body.data?.length ?? 0;
+      ok++;
+      console.log(pad('dgF', 5) + pad('OK', 7) + pad('-', 10) + pad(got, 5) + t.tool);
+    } catch (err) {
+      fail++;
+      console.log(pad('dgF', 5) + pad('FAIL', 7) + pad('-', 10) + pad('-', 5) + t.tool + '  —  ' + err.message);
+    }
+  }
+
   console.log('-'.repeat(100));
   console.log(`Totals: ${ok} OK, ${fail} FAIL`);
   process.exitCode = fail === 0 ? 0 : 1;

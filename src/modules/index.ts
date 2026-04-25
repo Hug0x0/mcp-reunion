@@ -15,6 +15,7 @@ import { registerGeographyTools } from './geography.js';
 import { registerHealthTools } from './health.js';
 import { registerHospitalityTools } from './hospitality.js';
 import { registerHousingTools } from './housing.js';
+import { registerNationalElectionsTools } from './national-elections.js';
 import { registerPossessionTools } from './possession.js';
 import { registerSocialTools } from './social.js';
 import { registerTelecomTools } from './telecom.js';
@@ -24,7 +25,7 @@ import { registerTransportTools } from './transport.js';
 import { registerUrbanismTools } from './urbanism.js';
 import { registerWeatherTools } from './weather.js';
 
-export const TOOL_COUNT = 96;
+export const TOOL_COUNT = 99;
 
 /**
  * Register all tool modules with the MCP server.
@@ -43,6 +44,7 @@ export function registerAllTools(server: McpServer): void {
   registerHealthTools(server);
   registerHospitalityTools(server);
   registerHousingTools(server);
+  registerNationalElectionsTools(server);
   registerPossessionTools(server);
   registerSocialTools(server);
   registerTelecomTools(server);
