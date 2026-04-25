@@ -11,8 +11,38 @@ const DATASET_ASSOCIATIONS = 'repertoire-local-des-associations-a-la-reunion';
 const DATASET_ELUS = 'liste-de-l-ensemble-des-elus-locaux';
 const DATASET_LEGIS_2022_T1 =
   'resultats-des-elections-legislatives-2022-1er-tour-par-bureau-de-vote-a-la-reuni';
+const DATASET_LEGIS_2022_T2 =
+  'resultats-des-elections-legislatives-2022-2nd-tour-par-bureau-de-vote-a-la-reuni';
+const DATASET_PRES_2022_T1 =
+  'resultats-des-elections-presidentielles-2022-1er-tour-par-bureau-de-vote-a-la-re';
 const DATASET_QPV = 'quartiers-prioritaires-de-la-politique-de-la-ville-qpv';
 const DATASET_NAMES = 'prenomsdpt974depuis2000';
+const DATASET_BOAMP = 'boamp';
+
+// Shared mapper for the per-polling-station election datasets — the 3 results
+// datasets (legis R1, legis R2, presidential R1) share the same schema.
+function mapBallotRow(row: RecordObject) {
+  return {
+    commune: pickString(row, ['com_name']),
+    commune_code: pickString(row, ['com_code']),
+    circumscription: pickString(row, ['libelle_de_la_circonscription']),
+    polling_station_code: pickString(row, ['code_du_b_vote']),
+    polling_station_name: pickString(row, ['lib_du_b_vote']),
+    registered: pickNumber(row, ['inscrits']),
+    abstentions: pickNumber(row, ['abstentions']),
+    voters: pickNumber(row, ['votants']),
+    blank: pickNumber(row, ['blancs']),
+    null_votes: pickNumber(row, ['nuls']),
+    expressed: pickNumber(row, ['exprimes']),
+    panel_num: pickNumber(row, ['ndegpanneau']),
+    candidate_last_name: pickString(row, ['nom']),
+    candidate_first_name: pickString(row, ['prenom']),
+    candidate_sex: pickString(row, ['sexe']),
+    political_label: pickString(row, ['nuance']),
+    votes: pickNumber(row, ['voix']),
+    votes_pct_expressed: pickNumber(row, ['voix_exp']),
+  };
+}
 
 export function registerAdministrationTools(server: McpServer): void {
   server.tool(
@@ -256,6 +286,112 @@ export function registerAdministrationTools(server: McpServer): void {
         });
       } catch (error) {
         return errorResult(error instanceof Error ? error.message : 'Failed to search baby names');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_get_legislative_2022_round2',
+    'Per-polling-station results of the 2022 legislative elections (2nd round) in La Réunion.',
+    {
+      commune: z.string().optional().describe('Commune filter (prefix match)'),
+      circumscription: z.string().optional().describe('Circonscription label filter (prefix match)'),
+      polling_station: z.string().optional().describe('Polling-station code filter (exact)'),
+      limit: z.number().int().min(1).max(500).default(100),
+    },
+    async ({ commune, circumscription, polling_station, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_LEGIS_2022_T2, {
+          where: buildWhere([
+            commune ? `com_name LIKE ${quote(`${commune}%`)}` : undefined,
+            circumscription ? `libelle_de_la_circonscription LIKE ${quote(`${circumscription}%`)}` : undefined,
+            polling_station ? `code_du_b_vote = ${quote(polling_station)}` : undefined,
+          ]),
+          order_by: 'voix DESC',
+          limit,
+        });
+        return jsonResult({
+          total_rows: data.total_count,
+          results: data.results.map(mapBallotRow),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to fetch legislative R2');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_get_presidential_2022_round1',
+    'Per-polling-station results of the 2022 presidential election (1st round) in La Réunion.',
+    {
+      commune: z.string().optional().describe('Commune filter (prefix match)'),
+      candidate: z.string().optional().describe('Candidate last-name filter (prefix match on nom)'),
+      polling_station: z.string().optional().describe('Polling-station code filter (exact)'),
+      limit: z.number().int().min(1).max(500).default(100),
+    },
+    async ({ commune, candidate, polling_station, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_PRES_2022_T1, {
+          where: buildWhere([
+            commune ? `com_name LIKE ${quote(`${commune}%`)}` : undefined,
+            candidate ? `nom LIKE ${quote(`${candidate.toUpperCase()}%`)}` : undefined,
+            polling_station ? `code_du_b_vote = ${quote(polling_station)}` : undefined,
+          ]),
+          order_by: 'voix DESC',
+          limit,
+        });
+        return jsonResult({
+          total_rows: data.total_count,
+          results: data.results.map(mapBallotRow),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to fetch presidential R1');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_search_boamp',
+    'Search BOAMP public-procurement notices for La Réunion (tenders, contract awards, market announcements).',
+    {
+      query: z.string().optional().describe('Free-text search'),
+      buyer: z.string().optional().describe('Buyer name filter (prefix match on nomacheteur)'),
+      procedure_type: z.string().optional().describe('Procedure category filter (prefix match)'),
+      limit: z.number().int().min(1).max(100).default(25),
+    },
+    async ({ query, buyer, procedure_type, limit }) => {
+      try {
+        const data = await client.getRecords<RecordObject>(DATASET_BOAMP, {
+          where: buildWhere([
+            query ? `search(${quote(query)})` : undefined,
+            buyer ? `nomacheteur LIKE ${quote(`${buyer}%`)}` : undefined,
+            procedure_type ? `procedure_categorise LIKE ${quote(`${procedure_type}%`)}` : undefined,
+          ]),
+          order_by: 'dateparution DESC',
+          limit,
+        });
+        return jsonResult({
+          total_notices: data.total_count,
+          notices: data.results.map((row) => ({
+            id: pickString(row, ['id']),
+            web_id: pickString(row, ['idweb']),
+            object: pickString(row, ['objet']),
+            buyer: pickString(row, ['nomacheteur']),
+            awardee: pickString(row, ['titulaire']),
+            family_label: pickString(row, ['famille_libelle']),
+            procedure_type: pickString(row, ['type_procedure']),
+            procedure_label: pickString(row, ['procedure_libelle']),
+            procedure_category: pickString(row, ['procedure_categorise']),
+            nature: pickString(row, ['nature_libelle']),
+            sub_nature: pickString(row, ['sousnature_libelle']),
+            published_at: pickString(row, ['dateparution']),
+            response_deadline: pickString(row, ['datelimitereponse']),
+            state: pickString(row, ['etat']),
+            url: pickString(row, ['url_avis']),
+          })),
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to search BOAMP');
       }
     }
   );
