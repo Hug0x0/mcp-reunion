@@ -12,12 +12,12 @@ const DATASET_FTTH = 'arcep_regions';
 export function registerTelecomTools(server: McpServer): void {
   server.tool(
     'reunion_list_5g_sites',
-    'List mobile 5G cell sites deployed in Réunion (ARCEP data).',
+    'List mobile 5G cell sites deployed across La Réunion, sourced from ARCEP open data (the French telecoms regulator). Each row is one operator-station combination. Returns operator name, operator site ID, ANFR station ID, active frequency bands (MHz), commercial-release date for 5G service, commune, EPCI. Useful for coverage analysis, infrastructure mapping, operator comparison, real-estate / connectivity studies.',
     {
-      operator: z.string().optional().describe('Operator name filter (prefix match): Orange, SFR, Bouygues, Free'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      frequency: z.string().optional().describe('Frequency band filter, e.g. "3500"'),
-      limit: z.number().int().min(1).max(500).default(100),
+      operator: z.string().optional().describe('Operator name prefix match. Examples: "Orange", "SFR", "Bouygues Telecom", "Free Mobile"'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      frequency: z.string().optional().describe('Frequency band substring match. Examples: "700" (700 MHz), "2100" (2.1 GHz), "3500" (3.5 GHz, the main 5G band)'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max sites to return (1-500, default 100)'),
     },
     async ({ operator, commune, frequency, limit }) => {
       try {
@@ -49,7 +49,7 @@ export function registerTelecomTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_ftth_coverage',
-    'Get FttH (fibre-to-the-home) deployment coverage for Réunion from ARCEP.',
+    'FTTH (Fiber to the Home) deployment coverage for La Réunion region, from ARCEP regional dashboards. Each row is one observation period. Returns: period, total housing units, total businesses, IPE premises (T3 2022 sum across all OIs), best premise estimate (T2 2022), coverage rate %, deployment notes. Useful for digital-divide analysis, infrastructure rollout monitoring, telecom-investment tracking.',
     {},
     async () => {
       try {
