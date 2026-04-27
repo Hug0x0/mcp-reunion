@@ -17,9 +17,9 @@ const DATASET_COASTAL_TRAIL = 'sentier-littoral-est-lareunion';
 export function registerTourismTools(server: McpServer): void {
   server.tool(
     'reunion_list_family_trails',
-    'List family-friendly ("sentiers marmailles") walking trails across Réunion.',
+    'List "sentiers marmailles" — family-friendly walking trails across La Réunion designed for parents with young children. Each trail has manageable length, low elevation gain, and points of interest. Returns trail name, length (km), duration (HH:MM), trail ID. Useful for tourism, family outdoor planning, accessibility studies. Source: ONF / Réunion regional tourism via data.regionreunion.com.',
     {
-      limit: z.number().int().min(1).max(200).default(50),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max trails to return (1-200, default 50)'),
     },
     async ({ limit }) => {
       try {
@@ -41,10 +41,10 @@ export function registerTourismTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_canyons',
-    'List practiced canyoning routes in Réunion with duration, frequentation, and access notes.',
+    'List practiced canyoning routes in La Réunion (canyons / ravines) — Réunion is one of the world\'s top canyoning destinations thanks to its volcanic relief and waterfalls. Returns canyon name, alternate name, ravine name, sector, approach typology, return typology, frequentation rating, total/descent/approach/return durations (in hours or minutes), forbidden/closed flag, signed length (m). Essential for canyoning planning, safety briefings, professional guides.',
     {
-      secteur: z.string().optional().describe('Geographic sector filter (prefix match)'),
-      limit: z.number().int().min(1).max(300).default(50),
+      secteur: z.string().optional().describe('Geographic sector prefix match. Examples: "Cilaos", "Mafate", "Salazie", "Saint-Benoît"'),
+      limit: z.number().int().min(1).max(300).default(50).describe('Max canyons to return (1-300, default 50)'),
     },
     async ({ secteur, limit }) => {
       try {
@@ -78,11 +78,11 @@ export function registerTourismTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_hiking_circuits',
-    'List the main hiking circuits of Réunion from the SIT Soubik catalog (distance, elevation, difficulty, duration).',
+    'List the main hiking circuits of La Réunion from the SIT Soubik tourism catalog. Réunion is famous for hiking — the GR R1, GR R2, the cirques (Mafate, Cilaos, Salazie), the Piton de la Fournaise volcano, etc. Returns circuit name, type, hiking-type names, classification, difficulty, distance (km), total duration (minutes), min/max elevation gain (m), min/max altitude (m), zone, open/closed status. Useful for trip planning, route comparison, ONF closures monitoring.',
     {
-      difficulty: z.string().optional().describe('Difficulty filter (prefix match)'),
-      open_only: z.boolean().default(false).describe('Return only circuits currently open ("Oui")'),
-      limit: z.number().int().min(1).max(200).default(50),
+      difficulty: z.string().optional().describe('Difficulty level prefix match. Examples: "Facile", "Moyen", "Difficile", "Très difficile"'),
+      open_only: z.boolean().default(false).describe('If true, return only circuits currently open (is_ouvert = "Oui"). Réunion frequently closes trails after cyclones / heavy rain'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max circuits to return (1-200, default 50)'),
     },
     async ({ difficulty, open_only, limit }) => {
       try {
@@ -119,10 +119,10 @@ export function registerTourismTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_cultural_leisure_pois',
-    'List Réunion cultural and leisure attraction points (IGN BD TOPO-derived catalog).',
+    'List Points of Interest (POIs) for culture and leisure in La Réunion, derived from IGN BD TOPO. Covers cinemas, theaters, museums, parks, leisure centers, sport halls, etc. Returns POI ID, toponym, nature (type), origin (data source), importance level. Useful for tourism applications, accessibility/coverage analysis, urban-services mapping.',
     {
-      nature: z.string().optional().describe('Nature filter (prefix match)'),
-      limit: z.number().int().min(1).max(300).default(100),
+      nature: z.string().optional().describe('POI nature prefix match. Examples: "Cinéma", "Théâtre", "Musée", "Parc", "Centre de loisirs", "Salle de spectacle"'),
+      limit: z.number().int().min(1).max(300).default(100).describe('Max POIs to return (1-300, default 100)'),
     },
     async ({ nature, limit }) => {
       try {
@@ -148,10 +148,10 @@ export function registerTourismTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_east_coastal_trail',
-    'Get segments of the East-coast coastal trail of Réunion (width, state, surfacing, vegetation, access notes).',
+    'Detailed segments of the East-coast coastal trail (sentier littoral) of La Réunion. Each row is one section/sequence/variant with field-survey attributes: width and length (m), state (good/degraded/closed), surfacing material, vegetation type and density, access conditions, free-text notes. Useful for trail-maintenance planning, accessibility studies, hiking applications.',
     {
-      state: z.string().optional().describe('Trail state filter (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(50),
+      state: z.string().optional().describe('Trail state prefix match. Examples: "Bon", "Dégradé", "Fermé", "Praticable"'),
+      limit: z.number().int().min(1).max(100).default(50).describe('Max segments to return (1-100, default 50)'),
     },
     async ({ state, limit }) => {
       try {
@@ -183,10 +183,10 @@ export function registerTourismTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_tourism_frequentation',
-    'Get monthly Réunion tourism frequentation since 2017: external tourist arrivals, purpose breakdown (business, leisure, family, other) and spending.',
+    'Monthly tourism frequentation in La Réunion since 2017: external (non-resident) tourist arrivals broken down by purpose of stay — affaires (business), affinitaire (visiting family/friends), agrément (leisure), autres (other) — and total spending in EUR. Each row is one month. Sorted by date descending. Source: IRT (Île de La Réunion Tourisme) via data.regionreunion.com. Useful for tourism-policy monitoring, seasonal-trend analysis, economic-impact studies.',
     {
-      year: z.string().optional().describe('Year filter, e.g. "2024"'),
-      limit: z.number().int().min(1).max(200).default(24),
+      year: z.string().optional().describe('Year filter, 4 digits (e.g. "2024")'),
+      limit: z.number().int().min(1).max(200).default(24).describe('Max months to return (1-200, default 24 = 2 years)'),
     },
     async ({ year, limit }) => {
       try {
@@ -217,11 +217,11 @@ export function registerTourismTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_landmarks',
-    'List remarkable tourism landmarks in Réunion (from the SIT Soubik catalog).',
+    'List remarkable tourism landmarks (lieux remarquables) in La Réunion from the SIT Soubik catalog: scenic viewpoints, waterfalls, beaches, cirque-belvédères, historical sites, etc. Returns landmark name, tagline (accroche), commune, "lieu majeur" flag (highlights), national-park flag, UNESCO World Heritage flag, characteristics, reduced-mobility accessibility. Useful for travel guides, must-see lists, accessibility-aware itineraries.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      major_only: z.boolean().default(false).describe('Only return landmarks flagged as "lieu majeur"'),
-      limit: z.number().int().min(1).max(200).default(50),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      major_only: z.boolean().default(false).describe('If true, return only landmarks flagged "lieu majeur" (top must-see sites)'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max landmarks to return (1-200, default 50)'),
     },
     async ({ commune, major_only, limit }) => {
       try {
