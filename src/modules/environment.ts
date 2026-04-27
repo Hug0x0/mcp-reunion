@@ -17,14 +17,14 @@ const DATASET_WATER_POIS = 'les-points-d-activite-ou-d-interet-la-gestion-des-ea
 export function registerEnvironmentTools(server: McpServer): void {
   server.tool(
     'reunion_get_air_quality',
-    'Get air-quality measurements (PM2.5, PM10, NO2, O3, etc.) recorded at Réunion stations via OpenAQ.',
+    'Air-quality station measurements in La Réunion exposed via OpenAQ. Each row is one measurement at one station for one pollutant. Returns city, location/station, pollutant code, value, unit, last update timestamp, source name. Sorted by last-update descending. Useful for environmental monitoring, public-health analysis, pollution-event tracking.',
     {
       pollutant: z
         .enum(['pm25', 'pm10', 'no2', 'o3', 'so2', 'co', 'bc'])
         .optional()
-        .describe('Pollutant filter (OpenAQ code)'),
-      city: z.string().optional().describe('City filter (prefix match)'),
-      limit: z.number().int().min(1).max(200).default(50),
+        .describe('Pollutant filter (OpenAQ code): pm25 (fine particles ≤2.5µm), pm10 (≤10µm), no2 (nitrogen dioxide), o3 (ozone), so2 (sulfur dioxide), co (carbon monoxide), bc (black carbon)'),
+      city: z.string().optional().describe('City name prefix match (e.g. "Saint-Denis", "Le Port")'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max measurements to return (1-200, default 50)'),
     },
     async ({ pollutant, city, limit }) => {
       try {
@@ -60,11 +60,11 @@ export function registerEnvironmentTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_waste_tonnage',
-    'Annual tonnage of household & assimilated waste (DMA) collected in Réunion, by waste type.',
+    'Annual tonnage of Déchets Ménagers et Assimilés (DMA, household + assimilated waste) collected in La Réunion, broken down by waste type (ordures ménagères résiduelles, collecte sélective, déchèteries, encombrants, déchets verts, etc.). Returns year, waste-type code and label, tonnage in tonnes, department. Sorted by year descending. Source: SINOE / ADEME via data.regionreunion.com. Use for waste-policy monitoring, recycling rate analysis.',
     {
-      year: z.number().int().optional().describe('Year filter'),
-      waste_type: z.string().optional().describe('Waste type filter (libellé, prefix match)'),
-      limit: z.number().int().min(1).max(200).default(50),
+      year: z.number().int().optional().describe('Year filter (4 digits, e.g. 2022)'),
+      waste_type: z.string().optional().describe('Waste-type label prefix. Examples: "Ordures ménagères résiduelles", "Collecte sélective", "Déchets verts", "Encombrants", "Déchèteries"'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max rows to return (1-200, default 50)'),
     },
     async ({ year, waste_type, limit }) => {
       try {
@@ -94,12 +94,12 @@ export function registerEnvironmentTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_rge_companies',
-    'Search RGE-certified (eco-renovation) companies in Réunion.',
+    'Search companies certified RGE (Reconnu Garant de l\'Environnement) in La Réunion. RGE certification is required for clients to qualify for state aids on energy-renovation work (MaPrimeRénov\', éco-PTZ, CEE). Returns SIRET, company name, address, postal code, commune, phone, email, website, certification name, qualification, domain (insulation/heating/PV/...), meta-domain, certifying organization, lat/lon. Source: ADEME via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      domain: z.string().optional().describe('Domain filter (e.g. "Isolation", "Chauffage")'),
-      limit: z.number().int().min(1).max(100).default(25),
+      query: z.string().optional().describe('Free-text search across company name, address, certification'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      domain: z.string().optional().describe('Specific domain prefix match. Examples: "Isolation", "Chauffage", "Photovoltaïque", "Eau chaude sanitaire", "Pompe à chaleur"'),
+      limit: z.number().int().min(1).max(100).default(25).describe('Max companies to return (1-100, default 25)'),
     },
     async ({ query, commune, domain, limit }) => {
       try {
@@ -139,10 +139,10 @@ export function registerEnvironmentTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_znieff',
-    'List ZNIEFF protected ecological/fauna/flora zones in Réunion.',
+    'List Zones Naturelles d\'Intérêt Écologique, Faunistique et Floristique (ZNIEFF) in La Réunion — official inventory of areas of high ecological value, used for biodiversity protection and as a reference in land-use decisions. Réunion has type-1 (small precise zones with rare species) and type-2 (large functional ecosystems). Returns MNHN ID, organization ID, zone name, generation. Source: MNHN / DEAL via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search on zone name'),
-      limit: z.number().int().min(1).max(100).default(50),
+      query: z.string().optional().describe('Free-text search on zone name (e.g. "Piton", "Mafate", "Volcan")'),
+      limit: z.number().int().min(1).max(100).default(50).describe('Max zones to return (1-100, default 50)'),
     },
     async ({ query, limit }) => {
       try {
@@ -167,7 +167,7 @@ export function registerEnvironmentTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_national_park_perimeters',
-    'List perimeters of Parc national de La Réunion (core area, adherence area).',
+    'List the official perimeters of the Parc National de La Réunion (created in 2007, UNESCO World Heritage since 2010): the core protected area (cœur de parc, ~42% of the island) and the adherence area (aire d\'adhésion). Returns perimeter type, type code, surface (raw and in hectares), founding decree reference. Useful for environmental impact assessment, hiking-permit logic, conservation analysis.',
     {},
     async () => {
       try {
@@ -190,10 +190,10 @@ export function registerEnvironmentTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_petroleum_consumption',
-    'Annual local consumption of petroleum products (gasoline, diesel, heating oil, LPG, jet fuel) in Réunion, in m³.',
+    'Annual local consumption of petroleum products in La Réunion, in cubic meters (m³), broken down by product: gasoline (essence), diesel (gazole), heating oil (fioul), LPG (gaz de pétrole liquéfié), jet fuel (carburéacteur). Useful for energy-transition monitoring, GHG emission estimates, transport-policy analysis. Sorted by year descending. Source: SDES (Service des données et études statistiques) via data.regionreunion.com.',
     {
-      year: z.number().int().optional().describe('Year filter'),
-      limit: z.number().int().min(1).max(50).default(20),
+      year: z.number().int().optional().describe('Year filter (4 digits, e.g. 2022)'),
+      limit: z.number().int().min(1).max(50).default(20).describe('Max yearly rows to return (1-50, default 20)'),
     },
     async ({ year, limit }) => {
       try {
@@ -222,11 +222,11 @@ export function registerEnvironmentTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_water_management_points',
-    'List points of activity / interest related to water management in La Réunion (intakes, treatment plants, etc.).',
+    'List points of activity / interest related to water management in La Réunion: water intakes (captages), treatment plants (stations d\'épuration / potabilisation), reservoirs, pumping stations, etc. Returns ID, origin/source, nature, toponym, importance level. Useful for water-resource analysis, infrastructure mapping, environmental studies.',
     {
-      nature: z.string().optional().describe('Nature filter (prefix match, e.g. "Captage")'),
-      origine: z.string().optional().describe('Origin / source filter (prefix match)'),
-      limit: z.number().int().min(1).max(200).default(50),
+      nature: z.string().optional().describe('Nature prefix match. Examples: "Captage", "Station de traitement", "Forage", "Réservoir", "Pompage"'),
+      origine: z.string().optional().describe('Origin / source prefix match (organization that produced the data)'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max points to return (1-200, default 50)'),
     },
     async ({ nature, origine, limit }) => {
       try {
