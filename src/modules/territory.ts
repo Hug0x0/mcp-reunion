@@ -15,14 +15,14 @@ const DATASET_RESIDENTIAL_PERMITS = 'liste-des-permis-de-construire-et-autres-au
 export function registerTerritoryTools(server: McpServer): void {
   server.tool(
     'reunion_search_real_estate_transactions',
-    'Search DVF real-estate transactions in La Réunion (land value declarations).',
+    'Search the DVF (Demande de Valeurs Foncières) database — France\'s open record of real-estate transactions registered with notaires — restricted to La Réunion. Each row is one mutation (sale, exchange, etc.) with date, value, property characteristics. Returns mutation ID, date, year, nature of mutation, VEFA flag (sale of future state of completion), sale value (EUR), INSEE codes, land area, built area, counts of houses/apartments/commercial premises, type code and label, department. Sorted by date descending. Use for price analysis, market trends, comparable sales.',
     {
-      year: z.number().int().optional().describe('Year of mutation'),
-      insee: z.string().optional().describe('INSEE commune code filter'),
-      type: z.string().optional().describe('Property type filter (prefix match on libtypbien)'),
-      min_value: z.number().optional().describe('Minimum sale value (€)'),
-      max_value: z.number().optional().describe('Maximum sale value (€)'),
-      limit: z.number().int().min(1).max(200).default(50),
+      year: z.number().int().optional().describe('Year of mutation (4 digits, e.g. 2023)'),
+      insee: z.string().optional().describe('INSEE commune code (5 digits as string, e.g. "97411" for Saint-Denis). Substring match supported'),
+      type: z.string().optional().describe('Property type label prefix match (libtypbien). Examples: "MAISON", "APPARTEMENT", "DEPENDANCE", "TERRAIN"'),
+      min_value: z.number().optional().describe('Minimum sale value in EUR (inclusive)'),
+      max_value: z.number().optional().describe('Maximum sale value in EUR (inclusive)'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max transactions to return (1-200, default 50)'),
     },
     async ({ year, insee, type, min_value, max_value, limit }) => {
       try {
@@ -65,11 +65,11 @@ export function registerTerritoryTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_commune_population',
-    'Get INSEE millésimé population for Réunion communes.',
+    'INSEE official millésimé population counts for La Réunion communes. INSEE provides three population figures: municipal (people legally living in the commune), counted apart (e.g. students living elsewhere but counted at parents\' home), and total (sum). Each row is one commune × one census year. Returns INSEE code, commune name, census year (the year the data was collected), use year (the year the figures officially apply), municipal/counted-apart/total populations, surface area, EPCI. Sorted by census year descending then total population descending.',
     {
-      commune: z.string().optional().describe('Commune name filter (prefix match)'),
-      year: z.number().int().optional().describe('Census reference year (annee_recensement)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      commune: z.string().optional().describe('Commune name prefix match (e.g. "Saint-Denis")'),
+      year: z.number().int().optional().describe('Census reference year (4 digits, INSEE publishes a "millésime" each year)'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max rows to return (1-500, default 100)'),
     },
     async ({ commune, year, limit }) => {
       try {
@@ -104,12 +104,12 @@ export function registerTerritoryTools(server: McpServer): void {
 
   server.tool(
     'reunion_lookup_postal_codes',
-    'Look up La Poste postal codes for Réunion communes/hamlets.',
+    'Look up the official La Poste postal-code database for La Réunion communes and hamlets (Hexasmal). One commune may have multiple postal codes (per neighborhood / lieu-dit). Returns INSEE commune code, commune name, postal code, line 5 (extra mention for delivery), official delivery label. Use to map between INSEE codes, postal codes, and delivery labels for normalization.',
     {
-      commune: z.string().optional().describe('Commune name filter (prefix match)'),
-      postal_code: z.string().optional().describe('Exact postal code filter'),
-      insee: z.string().optional().describe('INSEE commune code filter'),
-      limit: z.number().int().min(1).max(200).default(50),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      postal_code: z.string().optional().describe('Exact postal code (5 digits string, Réunion uses "974xx")'),
+      insee: z.string().optional().describe('Exact INSEE commune code (5 digits string)'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max entries to return (1-200, default 50)'),
     },
     async ({ commune, postal_code, insee, limit }) => {
       try {
@@ -139,12 +139,12 @@ export function registerTerritoryTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_land_potential',
-    'List "potentiel foncier" parcels (buildable/urbanizable land reserves) in La Réunion.',
+    'List "potentiel foncier" parcels in La Réunion — identified land reserves with potential for urbanization or development under current planning documents. Each row is one cadastral parcel with measured area, location attributes, and PLU zone. Returns RP number, area in m², INSEE, quartier, ZPU code, espacesar, label, cadastral section, parcelle, particulars. Sorted by area descending. Useful for SCOT / PLU work, real-estate development scouting, urban-strategy planning.',
     {
-      insee: z.string().optional().describe('INSEE commune code filter'),
-      quartier: z.string().optional().describe('Quartier filter (prefix match)'),
-      zpu: z.string().optional().describe('ZPU (Plan d\'Urbanisme zone) filter'),
-      limit: z.number().int().min(1).max(200).default(50),
+      insee: z.string().optional().describe('Exact INSEE commune code (5 digits)'),
+      quartier: z.string().optional().describe('Quartier name prefix match'),
+      zpu: z.string().optional().describe('ZPU (Zone du Plan d\'Urbanisme) prefix match. Examples: "U", "AU", "A", "N"'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max parcels to return (1-200, default 50)'),
     },
     async ({ insee, quartier, zpu, limit }) => {
       try {
@@ -178,14 +178,14 @@ export function registerTerritoryTools(server: McpServer): void {
     }
   );
 
-  server.tool(
+    server.tool(
     'reunion_search_residential_permits',
-    'Search construction permits creating dwellings (Sitadel) in La Réunion.',
+    'Search construction-permit applications that create dwellings (logements) in La Réunion, from the Sitadel database. Each row is one permit application with detailed dwelling counts. Returns permit number, type (PC/DP/PA), status, authorization date, deposit year, applicant identity (name, SIREN), site address, terrain area, total dwellings created (split into individual / collective / demolished / social-rental), living area created (m²), main use, project nature. Sorted by authorization date descending. Useful for housing-supply analysis, market intelligence, developer tracking. For non-residential permits use reunion_search_building_permits.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match on adr_localite_ter)'),
-      year: z.number().int().optional().describe('Year of deposit (an_depot)'),
-      min_dwellings: z.number().int().optional().describe('Minimum dwellings created'),
-      limit: z.number().int().min(1).max(200).default(50),
+      commune: z.string().optional().describe('Commune (locality) name prefix match on the project address'),
+      year: z.number().int().optional().describe('Year of permit deposit (4 digits)'),
+      min_dwellings: z.number().int().optional().describe('Minimum number of dwellings created (filters out small projects)'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max permits to return (1-200, default 50)'),
     },
     async ({ commune, year, min_dwellings, limit }) => {
       try {
