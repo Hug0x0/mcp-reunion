@@ -99,7 +99,7 @@ async function fetchLegislative2024(resourceId: string, circumscription?: number
 export function registerNationalElectionsTools(server: McpServer): void {
   server.tool(
     'reunion_get_legislative_2024_round1',
-    'Per-circonscription results of the 2024 anticipated legislative elections (1st round, 30 June 2024) in La Réunion. Source: Ministry of Interior via data.gouv.fr.',
+    'Results of the 2024 anticipated legislative elections (élections législatives anticipées, 1st round on June 30, 2024 — called by President Macron after dissolving the Assemblée nationale post-European elections) for La Réunion, aggregated per circonscription (Réunion has 7 circonscriptions). Returns base stats (registered, voters, abstentions, blank, null, expressed votes + percentages) and an array of candidates with panel number, political nuance, last/first name, sex, vote count, % of registered/expressed, elected flag (R1 elections happen rarely). Source: Ministère de l\'Intérieur via data.gouv.fr (queried through tabular-api). For round 2 use reunion_get_legislative_2024_round2.',
     {
       circumscription: z
         .number()
@@ -107,7 +107,7 @@ export function registerNationalElectionsTools(server: McpServer): void {
         .min(1)
         .max(7)
         .optional()
-        .describe('Réunion circonscription number (1-7), omit for all'),
+        .describe('Réunion circonscription number, integer 1 to 7. Omit to return all 7 circonscriptions'),
     },
     async ({ circumscription }) => {
       try {
@@ -131,7 +131,7 @@ export function registerNationalElectionsTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_legislative_2024_round2',
-    'Per-circonscription results of the 2024 anticipated legislative elections (2nd round, 7 July 2024) in La Réunion. Source: Ministry of Interior via data.gouv.fr.',
+    'Results of the 2024 anticipated legislative elections, 2nd round (July 7, 2024) in La Réunion, aggregated per circonscription (1-7). Same schema as round 1 but with elected flag populated for the winners (one elected per circonscription, so 7 députés total for Réunion). Returns base voting stats and the candidate-level data with vote count, percentages, and elected flag. Use to identify the deputies who won.',
     {
       circumscription: z
         .number()
@@ -139,7 +139,7 @@ export function registerNationalElectionsTools(server: McpServer): void {
         .min(1)
         .max(7)
         .optional()
-        .describe('Réunion circonscription number (1-7), omit for all'),
+        .describe('Réunion circonscription number, integer 1 to 7. Omit to return all 7 circonscriptions'),
     },
     async ({ circumscription }) => {
       try {
@@ -163,7 +163,7 @@ export function registerNationalElectionsTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_european_2024',
-    'Results of the 9 June 2024 European elections aggregated for département 974 (La Réunion). Returns the final standings of all 38 lists. Source: Ministry of Interior via data.gouv.fr.',
+    'Final results of the European Parliament elections held on June 9, 2024 (single round) aggregated for département 974 (La Réunion). France elects 81 MEPs from a single national constituency, but this dataset shows how Réunion voters behaved as a department. Returns base voting stats (registered, voters, abstentions, blank, null, expressed) and an array of all 38 lists with panel number, political nuance, list name and abbreviated name, vote count, % of registered/expressed, seats won (national-level allocation reflected here). Sorted by vote count descending.',
     {},
     async () => {
       try {
