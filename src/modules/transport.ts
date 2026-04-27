@@ -19,12 +19,12 @@ const DATASET_SPEED_LIMITS = 'limitations-vitesse-rn-lareunion';
 export function registerTransportTools(server: McpServer): void {
   server.tool(
     'reunion_get_road_traffic',
-    'Get average daily traffic (TMJA) counts on Réunion national roads.',
+    'Trafic Moyen Journalier Annuel (TMJA, average daily traffic) counts on Réunion national-road segments. Each row is a counted segment between two PR markers (points de repère) for a given year. Returns: route code, year, TMJA in vehicles/day, heavy-vehicle count and percentage, PR start/end, location name, commune, count type (manual vs automatic). Sorted by year then traffic descending. Source: DEAL Réunion via data.regionreunion.com.',
     {
-      route: z.string().optional().describe('Route code filter, e.g. "RN1", "RN2"'),
-      year: z.number().int().optional().describe('Reference year of the count'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(50),
+      route: z.string().optional().describe('Exact national-road code, e.g. "RN1", "RN1A", "RN2", "RN3"'),
+      year: z.number().int().optional().describe('Reference year of the count (4 digits, e.g. 2022)'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max segments to return (1-500, default 50)'),
     },
     async ({ route, year, commune, limit }) => {
       try {
@@ -61,11 +61,11 @@ export function registerTransportTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_road_classification',
-    'Get the functional classification of Réunion national road segments (category, class, length).',
+    'Functional classification of Réunion national-road segments: each segment between PR markers is assigned a category and class (used for maintenance planning, design standards, signposting). Returns route code, category, class, description, segment length (m), PR start/end. Source: DEAL Réunion. Combine with reunion_get_road_traffic and reunion_get_speed_limits for full road-segment analysis.',
     {
-      route: z.string().optional().describe('Route code filter'),
-      classe: z.string().optional().describe('Class filter'),
-      limit: z.number().int().min(1).max(500).default(50),
+      route: z.string().optional().describe('Exact national-road code, e.g. "RN1", "RN2"'),
+      classe: z.string().optional().describe('Functional class filter (typically a single letter or code, e.g. "A", "B", "C")'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max segments to return (1-500, default 50)'),
     },
     async ({ route, classe, limit }) => {
       try {
@@ -97,12 +97,12 @@ export function registerTransportTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_car_jaune_stops',
-    'Search Car Jaune (Réunion interurban bus network) GTFS stops by name or code.',
+    'Search bus stops of the Car Jaune network — La Réunion\'s interurban bus service operated by the Région — using GTFS data. Returns stop_id, stop_code, name, description, zone_id, location_type, parent_station, wheelchair-boarding flag, geographic coordinates. Use reunion_list_car_jaune_routes to list bus lines. Source: GTFS feed via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search on stop name'),
-      stop_code: z.string().optional().describe('Exact stop code filter'),
-      wheelchair_accessible: z.boolean().optional().describe('Return only stops flagged wheelchair-accessible (wheelchair_boarding = "1")'),
-      limit: z.number().int().min(1).max(500).default(50),
+      query: z.string().optional().describe('Free-text search on stop name (e.g. "Saint-Denis", "Aéroport", "Gare")'),
+      stop_code: z.string().optional().describe('Exact stop code as displayed at the stop'),
+      wheelchair_accessible: z.boolean().optional().describe('If true, return only stops flagged wheelchair-accessible (GTFS wheelchair_boarding = "1")'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max stops to return (1-500, default 50)'),
     },
     async ({ query, stop_code, wheelchair_accessible, limit }) => {
       try {
@@ -136,11 +136,11 @@ export function registerTransportTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_cycle_network',
-    'Get the Réunion regional cycle network (Voie Vélo Régionale) segments.',
+    'Voie Vélo Régionale (regional cycle network) segments in La Réunion. Each segment has an amenity type (bike lane / shared path / greenway / etc.), operator, status (in service / planned / under construction), commissioning year, length, micro-region. Useful for cycling-route planning, infrastructure analysis, mobility studies. Source: Région Réunion via data.regionreunion.com.',
     {
-      type: z.string().optional().describe('Amenity type filter'),
-      commune: z.string().optional().describe('Micro-region filter (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(50),
+      type: z.string().optional().describe('Amenity type prefix match. Examples: "Piste cyclable", "Bande cyclable", "Voie verte", "Couloir mixte"'),
+      commune: z.string().optional().describe('Micro-region prefix match (Réunion is divided into 4 micro-regions: "Nord", "Sud", "Est", "Ouest")'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max segments to return (1-500, default 50)'),
     },
     async ({ type, commune, limit }) => {
       try {
@@ -172,7 +172,7 @@ export function registerTransportTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_car_jaune_routes',
-    'List Car Jaune bus routes (GTFS) serving La Réunion.',
+    'List all bus routes of the Car Jaune network (Réunion\'s regional interurban bus service) from the GTFS routes.txt feed. Returns route_id, short name (line code like "E1", "S1"), long name (origin → destination), GTFS route_type (3 = bus), brand color, official URL. Use reunion_search_car_jaune_stops to find stops on these routes.',
     {},
     async () => {
       try {
@@ -196,12 +196,12 @@ export function registerTransportTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_road_accidents',
-    'Search road-accident records in La Réunion (2016-2019). Filterable by year, severity, commune.',
+    'Search records from the BAAC (Bulletin d\'Analyse des Accidents Corporels de la Circulation) for La Réunion, covering 2016-2019. Each row is one road accident with personal injury. Returns accident ID, datetime, commune, address, lat/lon, severity, weather (atm), luminosity (lum), collision type, road category (catr), max speed limit. Sorted most recent first. Source: ONISR via data.regionreunion.com.',
     {
-      year: z.number().int().optional().describe('Year filter (e.g. 2019)'),
-      severity: z.number().int().optional().describe('Severity code (1 = unharmed, 2 = killed, 3 = hospitalized, 4 = light)'),
-      commune: z.string().optional().describe('Commune name filter (prefix match)'),
-      limit: z.number().int().min(1).max(200).default(50),
+      year: z.number().int().optional().describe('Year filter (4 digits, 2016-2019)'),
+      severity: z.number().int().optional().describe('Severity code per BAAC schema: 1 = indemne (unharmed), 2 = tué (killed), 3 = blessé hospitalisé (hospitalized), 4 = blessé léger (light injury)'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max accidents to return (1-200, default 50)'),
     },
     async ({ year, severity, commune, limit }) => {
       try {
@@ -239,11 +239,11 @@ export function registerTransportTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_vehicle_inspection_prices',
-    'Search vehicle technical-inspection (contrôle technique) centers and their prices in La Réunion.',
+    'Mandatory vehicle-inspection (contrôle technique) center prices in La Réunion. Centers must inspect every car >4 years old then every 2 years (different rules for utility, motorbike). Returns center SIRET, name, address, postal code, commune, phone, URL, vehicle category, energy type, base visit price (EUR), counter-visit price min/max, last update date, lat/lon. Useful for price comparison.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      vehicle_category: z.string().optional().describe('Vehicle category filter (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(50),
+      commune: z.string().optional().describe('Center commune name prefix match'),
+      vehicle_category: z.string().optional().describe('Vehicle category label prefix. Examples: "Voiture particulière", "Camionnette", "Moto", "Camion"'),
+      limit: z.number().int().min(1).max(100).default(50).describe('Max rows to return (1-100, default 50)'),
     },
     async ({ commune, vehicle_category, limit }) => {
       try {
@@ -282,10 +282,10 @@ export function registerTransportTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_road_daily_flow',
-    'Daily traffic flow measurements on Réunion national-road counting stations.',
+    'Daily traffic-flow measurements at fixed automatic counting stations on Réunion\'s national roads (RN). Each row is one station × one day × one channel/measurement type. Returns station name and code, channel (direction/lane), measurement nature (vehicles/heavy trucks), date, value, day type (weekday/weekend), school-holiday flag. Sorted by date descending. Combine with reunion_get_road_traffic for annualized averages.',
     {
-      station: z.string().optional().describe('Station code or name (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      station: z.string().optional().describe('Station code or name prefix match (e.g. "001", "RN1")'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max measurements to return (1-500, default 100)'),
     },
     async ({ station, limit }) => {
       try {
@@ -319,10 +319,10 @@ export function registerTransportTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_speed_limits',
-    'Speed limits (vitesse_m in km/h) on Réunion national-road segments.',
+    'Speed-limit segments on Réunion\'s national roads (RN). Each row is one homogeneous-speed segment between two PR markers, on one side of the road. Returns objectid, road number, axis (e.g. RN1), side (sens), speed limit in km/h, length (m), PR start/end, source, last update date. Useful for routing applications, speed-compliance analysis, road-safety studies.',
     {
-      axe: z.string().optional().describe('Road axis filter, e.g. "RN1" (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      axe: z.string().optional().describe('Road axis prefix match. Examples: "RN1", "RN1A", "RN2", "RN3"'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max segments to return (1-500, default 100)'),
     },
     async ({ axe, limit }) => {
       try {
