@@ -14,12 +14,12 @@ const DATASET_CHILDCARE_POSSESSION = 'etablissements-d-accueil-des-jeunes-enfant
 export function registerSocialTools(server: McpServer): void {
   server.tool(
     'reunion_get_caf_beneficiaries',
-    'Get the monthly beneficiary counts for Réunion CAF social benefits (RSA, AAH, family allowances, housing, …).',
+    'Monthly counts of beneficiaries of CAF (Caisse d\'Allocations Familiales) social benefits in La Réunion. Each row is one (month × benefit type). Covers RSA (revenu de solidarité active), AAH (allocation aux adultes handicapés), prestations familiales (allocations familiales, ASF, complément familial), prestations logement (APL, ALS, ALF), prime d\'activité, etc. Returns date, benefit type, beneficiary count. Sorted by date descending. Combine with reunion_get_caf_amounts for total euros paid.',
     {
-      benefit_type: z.string().optional().describe('Benefit type filter (prefix match), e.g. "RSA", "AAH"'),
-      from: z.string().optional().describe('ISO date lower bound'),
-      to: z.string().optional().describe('ISO date upper bound'),
-      limit: z.number().int().min(1).max(500).default(50),
+      benefit_type: z.string().optional().describe('Benefit type label prefix match. Examples: "RSA", "AAH", "Prime d\'activité", "Allocations familiales", "APL"'),
+      from: z.string().optional().describe('Inclusive lower bound on date, ISO format YYYY-MM-DD'),
+      to: z.string().optional().describe('Inclusive upper bound on date, ISO format YYYY-MM-DD'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max rows to return (1-500, default 50)'),
     },
     async ({ benefit_type, from, to, limit }) => {
       try {
@@ -48,12 +48,12 @@ export function registerSocialTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_caf_amounts',
-    'Get monthly total amounts paid out by Réunion CAF for each social benefit type.',
+    'Monthly total amounts (in EUR) paid out by CAF Réunion for each social-benefit category. Each row is one (month × benefit type) with the cumulated payouts for that category. Useful for public-spending analysis, social-policy monitoring, comparison with beneficiary counts (use reunion_get_caf_beneficiaries to derive average per beneficiary). Sorted by date descending.',
     {
-      benefit_type: z.string().optional().describe('Benefit type filter (prefix match)'),
-      from: z.string().optional(),
-      to: z.string().optional(),
-      limit: z.number().int().min(1).max(500).default(50),
+      benefit_type: z.string().optional().describe('Benefit type label prefix match. Examples: "RSA", "AAH", "Prime d\'activité", "Allocations familiales"'),
+      from: z.string().optional().describe('Inclusive lower bound on date, ISO format YYYY-MM-DD'),
+      to: z.string().optional().describe('Inclusive upper bound on date, ISO format YYYY-MM-DD'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max rows to return (1-500, default 50)'),
     },
     async ({ benefit_type, from, to, limit }) => {
       try {
@@ -82,10 +82,10 @@ export function registerSocialTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_childcare_facilities',
-    'List early-childhood care facilities (crèches, micro-crèches, haltes garderies) in Saint-Denis or La Possession.',
+    'List early-childhood care facilities (Etablissements d\'Accueil du Jeune Enfant, EAJE) in Saint-Denis or La Possession — currently the only two communes publishing this dataset. Covers crèches collectives, multi-accueil, micro-crèches, haltes-garderies. Returns name, type, category, capacity, address, manager, and (for La Possession) care mode, age range, opening hours, contact info. Useful for parents finding childcare, family-policy mapping.',
     {
-      commune: z.enum(['Saint-Denis', 'La Possession']).describe('Commune (only these two publish this dataset)'),
-      limit: z.number().int().min(1).max(200).default(50),
+      commune: z.enum(['Saint-Denis', 'La Possession']).describe('Commune name. Only "Saint-Denis" and "La Possession" publish this dataset'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max facilities to return (1-200, default 50)'),
     },
     async ({ commune, limit }) => {
       try {
