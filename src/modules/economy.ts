@@ -15,14 +15,14 @@ const DATASET_INCOME_IRIS = 'revenus-declares-pauvrete-et-niveau-de-vie-en-2015-
 export function registerEconomyTools(server: McpServer): void {
   server.tool(
     'reunion_search_sirene_establishments',
-    'Search active SIRENE v3 establishments in La Réunion.',
+    'Search the SIRENE v3 national business registry, restricted to establishments located in La Réunion. Each establishment has a 14-digit SIRET (= 9-digit SIREN of the legal entity + 5-digit NIC). Returns SIREN/SIRET, denomination, usual name, brand, head-office flag, administrative state (active/closed), creation date, NAF activity code, workforce bracket, full address, postal code, commune, legal form, ESS (économie sociale et solidaire) status. Source: INSEE Sirene via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search (name, brand, activity...)'),
-      siren: z.string().optional().describe('SIREN filter (exact)'),
-      siret: z.string().optional().describe('SIRET filter (exact)'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      naf: z.string().optional().describe('Activité principale NAF code (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(25),
+      query: z.string().optional().describe('Free-text search across denomination, usual name, brand, address, activity'),
+      siren: z.string().optional().describe('Exact 9-digit SIREN of the legal entity (unité légale)'),
+      siret: z.string().optional().describe('Exact 14-digit SIRET of the establishment'),
+      commune: z.string().optional().describe('Commune name prefix match (e.g. "Saint-Denis")'),
+      naf: z.string().optional().describe('NAF/APE activity code prefix match. Examples: "47" for retail, "47.11" for hypermarkets, "56.10A" for traditional restaurants, "62" for IT'),
+      limit: z.number().int().min(1).max(100).default(25).describe('Max establishments to return (1-100, default 25)'),
     },
     async ({ query, siren, siret, commune, naf, limit }) => {
       try {
@@ -65,12 +65,12 @@ export function registerEconomyTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_consumer_price_index',
-    'Get INSEE monthly consumer price index (IPC) values for La Réunion.',
+    'INSEE monthly Indice des Prix à la Consommation (IPC, consumer price index) for La Réunion. Time series broken down by COICOP category (Classification of Individual Consumption by Purpose) and population (whole population vs urban households). Use it to track inflation, deflate nominal values to real, or compare price evolution across categories (food, energy, housing, transport, etc.). Returns period, COICOP code/label, base year, population, zone, IDBANK identifier, index value. Sorted most recent first.',
     {
-      period: z.string().optional().describe('Period filter (YYYY-MM prefix)'),
-      coicop_code: z.string().optional().describe('COICOP category code (e.g. "01" food) prefix match'),
-      type: z.string().optional().describe('Type filter (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      period: z.string().optional().describe('Period prefix match in YYYY-MM format. Examples: "2023" (whole year), "2023-12" (specific month)'),
+      coicop_code: z.string().optional().describe('COICOP category code prefix. Examples: "01" food and beverages, "02" alcohol/tobacco, "04" housing/water/energy, "07" transport, "11" restaurants/hotels, "00" general index'),
+      type: z.string().optional().describe('Type label prefix match (e.g. "Indice général", "Indice mensuel")'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max rows to return (1-500, default 100)'),
     },
     async ({ period, coicop_code, type, limit }) => {
       try {
@@ -108,12 +108,12 @@ export function registerEconomyTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_feder_beneficiaries',
-    'Search FEDER 2014-2020 beneficiaries in La Réunion (EU Regional Development Fund).',
+    'Search beneficiaries of the European Regional Development Fund (FEDER / ERDF) 2014-2020 programming period in La Réunion. Returns funded operations: beneficiary name, operation title and summary, start/end dates, total eligible expenditure (EUR), EU contribution (EUR), location (postal code, city), intervention category (e.g. R&D, infrastructure, SMEs, environment). Sorted by start date descending. Useful to map EU-funded projects, audit transparency, or analyze regional development patterns.',
     {
-      query: z.string().optional().describe('Free-text search (beneficiary name, operation...)'),
-      commune: z.string().optional().describe('City filter (prefix match)'),
-      category: z.string().optional().describe('Intervention category filter (prefix match)'),
-      limit: z.number().int().min(1).max(200).default(50),
+      query: z.string().optional().describe('Free-text search across beneficiary name, operation title, summary'),
+      commune: z.string().optional().describe('City/commune name prefix match'),
+      category: z.string().optional().describe('Intervention category prefix match. Examples: "Recherche et innovation", "PME", "Économie à faibles émissions", "Infrastructures de transport"'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max operations to return (1-200, default 50)'),
     },
     async ({ query, commune, category, limit }) => {
       try {
@@ -149,10 +149,10 @@ export function registerEconomyTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_coworking_spaces',
-    'List coworking spaces in La Réunion.',
+    'List coworking spaces and shared offices in La Réunion (tiers-lieux numériques, espaces partagés, fab labs sometimes). Returns name, type, website, coarse location (zone), full address, email, phone, dataset page URL. Useful for remote workers, freelancers, business travelers needing flexible workspace.',
     {
-      commune: z.string().optional().describe('Coarse location filter (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(50),
+      commune: z.string().optional().describe('Coarse-location prefix match (typically a region or commune name like "Saint-Denis", "Saint-Pierre", "Le Tampon")'),
+      limit: z.number().int().min(1).max(100).default(50).describe('Max spaces to return (1-100, default 50)'),
     },
     async ({ commune, limit }) => {
       try {
@@ -181,11 +181,11 @@ export function registerEconomyTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_income_poverty_by_iris',
-    'Income, poverty and standard-of-living indicators at IRIS level (2014) in La Réunion.',
+    'INSEE Filosofi income, poverty and standard-of-living indicators at IRIS level (2014 reference year) for La Réunion. IRIS are sub-communal statistical zones (~2000 inhabitants each, used for fine-grained territorial analysis). Returns: IRIS code/label, commune, household population, poverty rate %, median disposable income, Q1/Q3/D1/D9 quartiles/deciles, interdecile ratio, Gini coefficient, share of income from wages/unemployment/social benefits/pensions. Use reunion_iris_profile (commune module) for a cross-dataset IRIS view.',
     {
-      iris: z.string().optional().describe('IRIS code filter (exact)'),
-      commune: z.string().optional().describe('Commune name filter (prefix match on libcom)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      iris: z.string().optional().describe('Exact 9-digit IRIS code (e.g. "974010101")'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max IRIS rows to return (1-500, default 100)'),
     },
     async ({ iris, commune, limit }) => {
       try {
