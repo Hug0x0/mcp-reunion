@@ -13,13 +13,13 @@ const DATASET_ECOLODGE = 'localisation-potentielle-ecolodge-lareunion';
 export function registerHospitalityTools(server: McpServer): void {
   server.tool(
     'reunion_search_tourism_establishments',
-    'Search Réunion tourism establishments from the SIT Soubik catalog (hotels, restaurants, activity providers, …).',
+    'Search the SIT Soubik (Système d\'Information Touristique) catalog for La Réunion: hotels, restaurants, gîtes, activity providers, leisure venues, tour operators, transport providers serving tourists. Returns commercial name, type, classification, commune, tourism zone (Nord/Sud/Est/Ouest/Cirques/Volcan), address, accepted payment methods, attached tourist office. For star-classified accommodations specifically, use reunion_search_classified_accommodations.',
     {
-      type: z.string().optional().describe('Establishment type (prefix match)'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      zone: z.string().optional().describe('Tourism zone filter'),
-      query: z.string().optional().describe('Free-text search on commercial name / address'),
-      limit: z.number().int().min(1).max(300).default(50),
+      type: z.string().optional().describe('Establishment type prefix match. Examples: "Hôtel", "Restaurant", "Gîte", "Camping", "Activité de loisirs", "Office de tourisme"'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      zone: z.string().optional().describe('Tourism zone prefix match. Examples: "Nord", "Sud", "Est", "Ouest", "Cirques", "Volcan"'),
+      query: z.string().optional().describe('Free-text search on commercial name and address'),
+      limit: z.number().int().min(1).max(300).default(50).describe('Max establishments to return (1-300, default 50)'),
     },
     async ({ type, commune, zone, query, limit }) => {
       try {
@@ -53,12 +53,12 @@ export function registerHospitalityTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_classified_accommodations',
-    'Search classified collective accommodations in Réunion (Atout France classification: hôtel, résidence de tourisme, camping, village de vacances).',
+    'Search collective accommodations in La Réunion that hold an official Atout France star classification (1 to 5 étoiles, valid 5 years). Covers hôtels de tourisme, résidences de tourisme, campings, villages de vacances, parcs résidentiels de loisirs. Returns commercial name, typology, classification (stars), category, classification date and extension flag, stay type, commune, postal code, address, website, room count, capacity in persons. Sorted by classification date descending. Source: Atout France via data.regionreunion.com.',
     {
-      typology: z.string().optional().describe('Typology filter, e.g. "Hôtel", "Camping", "Résidence de tourisme"'),
-      classification: z.string().optional().describe('Star classification filter, e.g. "4 étoiles"'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      limit: z.number().int().min(1).max(300).default(50),
+      typology: z.string().optional().describe('Typology prefix match. Examples: "Hôtel de tourisme", "Camping", "Résidence de tourisme", "Village de vacances", "Parc résidentiel de loisirs"'),
+      classification: z.string().optional().describe('Star classification prefix match. Examples: "1 étoile", "2 étoiles", "3 étoiles", "4 étoiles", "5 étoiles"'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      limit: z.number().int().min(1).max(300).default(50).describe('Max accommodations to return (1-300, default 50)'),
     },
     async ({ typology, classification, commune, limit }) => {
       try {
@@ -97,7 +97,7 @@ export function registerHospitalityTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_ecolodge_locations',
-    'List potential ecolodge development locations in Réunion.',
+    'List geocoded locations identified as having potential for ecolodge (eco-friendly tourist accommodation) development in La Réunion. Each row is one candidate site with type and X/Y coordinates (RGR92 / Réunion projection). Useful for sustainable-tourism planning, real-estate scouting in eco-tourism, regional development studies.',
     {},
     async () => {
       try {
