@@ -47,12 +47,12 @@ function mapBallotRow(row: RecordObject) {
 export function registerAdministrationTools(server: McpServer): void {
   server.tool(
     'reunion_search_admin_directory',
-    'Search public-administration local counters (town halls, social orgs, state services) in La Réunion.',
+    'Search the Annuaire de l\'Administration: local counters of public services in La Réunion (town halls / mairies, CCAS, CAF, Pôle emploi, sub-préfectures, tax offices, schools, etc.). Returns name, type (pivotlocal), full address, phone, email, website, opening hours notes, INSEE code, EPCI. Source: Service-Public.fr / DILA via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      pivot_local: z.string().optional().describe('pivotlocal filter (prefix match, e.g. "mairie")'),
-      limit: z.number().int().min(1).max(200).default(50),
+      query: z.string().optional().describe('Free-text search across name, address, services'),
+      commune: z.string().optional().describe('Commune name prefix match (e.g. "Saint-Denis")'),
+      pivot_local: z.string().optional().describe('Service type prefix match. Examples: "mairie", "ccas", "caf", "pole_emploi", "sous_prefecture", "tresorerie", "ecole", "college", "lycee"'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max counters to return (1-200, default 50)'),
     },
     async ({ query, commune, pivot_local, limit }) => {
       try {
@@ -89,12 +89,12 @@ export function registerAdministrationTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_associations',
-    'Search the RNA local associations registry in La Réunion.',
+    'Search the Répertoire National des Associations (RNA) for La Réunion: registered associations under the 1901 law (sports clubs, cultural orgs, charities, professional unions, etc.). Returns RNA ID (W-prefixed), SIRET, title, object/purpose, social-object categories, dates (creation/declaration/publication/dissolution), nature, full address, website, public-utility flag. Sorted most recent first. Source: Ministère de l\'Intérieur / RNA via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search (title, object)'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      public: z.boolean().optional().describe('Return only public-utility associations'),
-      limit: z.number().int().min(1).max(200).default(50),
+      query: z.string().optional().describe('Free-text search across title and object/purpose fields'),
+      commune: z.string().optional().describe('Commune name prefix match for the registered address'),
+      public: z.boolean().optional().describe('If true, return only associations recognized as "public utility" (reconnues d\'utilité publique)'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max associations to return (1-200, default 50)'),
     },
     async ({ query, commune, public: isPublic, limit }) => {
       try {
@@ -137,12 +137,12 @@ export function registerAdministrationTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_local_elected_officials',
-    'Search local elected officials in La Réunion (région, département, communes, EPCI).',
+    'Search the registry of local elected officials (élus locaux) for La Réunion: maires, adjoints, conseillers municipaux, conseillers départementaux, conseillers régionaux, présidents/vice-présidents d\'EPCI. Returns first/last name, birth date, exact function, mandate start, function start, socio-professional category (CSP), sex, commune, EPCI, canton. Source: Ministère de l\'Intérieur RNE via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search on name/function'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      function_label: z.string().optional().describe('Function label filter (prefix match on libelle_de_la_fonction)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      query: z.string().optional().describe('Free-text search across first name, last name, function'),
+      commune: z.string().optional().describe('Commune prefix match'),
+      function_label: z.string().optional().describe('Function label prefix. Examples: "Maire", "Adjoint au Maire", "Conseiller Municipal", "Conseiller Départemental", "Président d\'EPCI"'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max officials to return (1-500, default 100)'),
     },
     async ({ query, commune, function_label, limit }) => {
       try {
@@ -178,12 +178,12 @@ export function registerAdministrationTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_legislative_2022_round1',
-    'Per polling-station results of the 2022 legislative elections (1st round) in La Réunion.',
+    'Per polling-station (bureau de vote) results of the June 12, 2022 legislative elections, 1st round, for La Réunion (7 circonscriptions). Each row is one candidate at one polling station, with: commune, INSEE code, circonscription, polling station code/name, registered voters (inscrits), abstentions, voters, blank votes, null votes, expressed votes, candidate panel number, last name, first name, sex, political nuance, votes, vote share of expressed. Sorted by vote count descending. For round 2 use reunion_get_legislative_2022_round2.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      circumscription: z.string().optional().describe('Circonscription label filter (prefix match)'),
-      polling_station: z.string().optional().describe('Polling-station code filter (exact)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      commune: z.string().optional().describe('Commune name prefix match (e.g. "Saint-Denis")'),
+      circumscription: z.string().optional().describe('Circonscription label prefix match (e.g. "1ère circonscription de La Réunion")'),
+      polling_station: z.string().optional().describe('Exact polling-station code (bureau de vote), e.g. "0001"'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max rows to return (1-500, default 100)'),
     },
     async ({ commune, circumscription, polling_station, limit }) => {
       try {
@@ -227,10 +227,10 @@ export function registerAdministrationTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_priority_neighborhoods',
-    'List QPV (Quartiers prioritaires de la politique de la ville) in La Réunion.',
+    'List Quartiers Prioritaires de la politique de la Ville (QPV) in La Réunion. QPVs are urban areas designated by the State as priority targets for urban policy (eligible for ANRU funding, NPNRU, exonérations fiscales). Returns QPV code, name, hosting commune, INSEE code, EPCI. Source: ANCT (Agence Nationale de la Cohésion des Territoires) via data.regionreunion.com.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(50),
+      commune: z.string().optional().describe('Filter by hosting commune name prefix (e.g. "Saint-Denis")'),
+      limit: z.number().int().min(1).max(100).default(50).describe('Max QPV to return (1-100, default 50)'),
     },
     async ({ commune, limit }) => {
       try {
@@ -256,12 +256,12 @@ export function registerAdministrationTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_baby_names',
-    'Search first names given at birth in La Réunion (974) since 2000.',
+    'Search first names given to babies born in La Réunion (department 974) by year, since 2000. Each row gives: usual first name (uppercase), year of birth, department, sex code, and number of children given that name that year. Sorted by count descending. Source: INSEE Fichier des prénoms via data.regionreunion.com. Useful for naming trend analysis, demographic studies.',
     {
-      name: z.string().optional().describe('Usual first-name filter (prefix match)'),
-      year: z.number().int().optional().describe('Birth year filter'),
-      sex: z.enum(['1', '2']).optional().describe('Sex code (1 = boy, 2 = girl)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      name: z.string().optional().describe('First name prefix match (case-insensitive — auto-uppercased). Example: "marie" matches "MARIE", "MARIE-CLAIRE", "MARIETTE"'),
+      year: z.number().int().optional().describe('Birth year filter (4 digits, 2000-present), e.g. 2020'),
+      sex: z.enum(['1', '2']).optional().describe('Sex code: "1" for boys, "2" for girls'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max rows to return (1-500, default 100)'),
     },
     async ({ name, year, sex, limit }) => {
       try {
@@ -292,12 +292,12 @@ export function registerAdministrationTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_legislative_2022_round2',
-    'Per-polling-station results of the 2022 legislative elections (2nd round) in La Réunion.',
+    'Per-polling-station results of the June 19, 2022 legislative elections, 2nd round, for La Réunion. Same schema as round 1 (see reunion_get_legislative_2022_round1): commune, circonscription, bureau de vote, candidate identity and political nuance, registered/voters/blank/null/expressed counts, candidate votes and vote share. Sorted by vote count descending. Useful to identify elected deputies (top vote per circonscription).',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      circumscription: z.string().optional().describe('Circonscription label filter (prefix match)'),
-      polling_station: z.string().optional().describe('Polling-station code filter (exact)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      circumscription: z.string().optional().describe('Circonscription label prefix match'),
+      polling_station: z.string().optional().describe('Exact polling-station (bureau de vote) code'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max rows to return (1-500, default 100)'),
     },
     async ({ commune, circumscription, polling_station, limit }) => {
       try {
@@ -322,12 +322,12 @@ export function registerAdministrationTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_presidential_2022_round1',
-    'Per-polling-station results of the 2022 presidential election (1st round) in La Réunion.',
+    'Per-polling-station results of the April 10, 2022 presidential election, 1st round, for La Réunion. 12 candidates ran nationally (Macron, Le Pen, Mélenchon, Zemmour, Pécresse, Jadot, Lassalle, Roussel, Dupont-Aignan, Hidalgo, Poutou, Arthaud). Each row is one candidate at one polling station with vote count and vote share. Schema matches reunion_get_legislative_2022_round1. Sorted by vote count descending.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      candidate: z.string().optional().describe('Candidate last-name filter (prefix match on nom)'),
-      polling_station: z.string().optional().describe('Polling-station code filter (exact)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      commune: z.string().optional().describe('Commune name prefix match (e.g. "Saint-Denis")'),
+      candidate: z.string().optional().describe('Candidate last-name prefix match (case-insensitive — auto-uppercased). Examples: "macron", "le pen", "mélenchon"'),
+      polling_station: z.string().optional().describe('Exact polling-station (bureau de vote) code'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max rows to return (1-500, default 100)'),
     },
     async ({ commune, candidate, polling_station, limit }) => {
       try {
@@ -352,12 +352,12 @@ export function registerAdministrationTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_boamp',
-    'Search BOAMP public-procurement notices for La Réunion (tenders, contract awards, market announcements).',
+    'Search the BOAMP (Bulletin Officiel des Annonces de Marchés Publics) for public-procurement notices concerning La Réunion: open tenders (appels d\'offres ouverts/restreints), MAPA (procédures adaptées), contract awards (avis d\'attribution), framework agreements (accords-cadres), and concession contracts. Returns notice ID, web ID, object/description, buyer name, awardee (if any), procurement family/nature, procedure type and label, publication date, response deadline, status, official BOAMP URL. Sorted by publication date descending. Source: DILA / BOAMP via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search'),
-      buyer: z.string().optional().describe('Buyer name filter (prefix match on nomacheteur)'),
-      procedure_type: z.string().optional().describe('Procedure category filter (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(25),
+      query: z.string().optional().describe('Free-text search across notice object, buyer, awardee, descriptions'),
+      buyer: z.string().optional().describe('Buyer / contracting authority name prefix match. Examples: "Région Réunion", "Mairie de Saint-Denis", "CHU"'),
+      procedure_type: z.string().optional().describe('Procedure category prefix match. Examples: "Appel d\'offres ouvert", "Procédure adaptée (MAPA)", "Marché négocié"'),
+      limit: z.number().int().min(1).max(100).default(25).describe('Max notices to return (1-100, default 25)'),
     },
     async ({ query, buyer, procedure_type, limit }) => {
       try {
