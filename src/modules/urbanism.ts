@@ -12,11 +12,11 @@ const DATASET_PERMITS_NR = 'liste-des-permis-de-constuire-creant-des-locaux-non-
 export function registerUrbanismTools(server: McpServer): void {
   server.tool(
     'reunion_search_plu_zones',
-    'Search the Réunion permanent PLU (local urbanism plan) zoning database by commune INSEE code and zone type.',
+    'Search the permanent PLU (Plan Local d\'Urbanisme) zoning database for La Réunion. Each row is one zone within a commune\'s PLU/PLUi, defining what can be built where. Returns commune INSEE, zone code (e.g. "Ua", "1AU", "Ah"), full label, zone type (U/AU/A/N), dominant destination, PLU document ID, document name and URL, approval date, end of validity. Source: GPU (Géoportail de l\'Urbanisme) via data.regionreunion.com. Essential for real-estate due diligence, project siting, urbanism research.',
     {
-      insee: z.string().optional().describe('INSEE commune code, e.g. "97411"'),
-      zone_type: z.string().optional().describe('Zone typology, e.g. "U", "AU", "A", "N"'),
-      limit: z.number().int().min(1).max(500).default(100),
+      insee: z.string().optional().describe('Commune INSEE code (5 digits, Réunion communes are "974xx"). Examples: "97411" Saint-Denis, "97410" Saint-Pierre, "97417" Saint-Paul'),
+      zone_type: z.string().optional().describe('Zone typology code (single letter or short code): "U" (zone urbaine, currently built up), "AU" (à urbaniser), "A" (agricole), "N" (naturelle)'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max zones to return (1-500, default 100)'),
     },
     async ({ insee, zone_type, limit }) => {
       try {
@@ -50,12 +50,12 @@ export function registerUrbanismTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_building_permits',
-    'Search non-residential building permits (Sitadel) in Réunion.',
+    'Search non-residential building authorizations from the Sitadel database (Système d\'information et de traitement automatisé des données élémentaires sur les logements et les locaux), restricted to La Réunion. Covers permis de construire (PC), déclarations préalables (DP), and permis d\'aménager (PA) for non-residential premises (commerce, offices, industry, agriculture, equipment). Returns commune INSEE, type, reference, filing year, authorization date, works start (DOC) and completion (DAACT) dates, project nature code, primary destination, applicant identity, site address, terrain surface. Sorted by authorization date descending.',
     {
-      commune: z.string().optional().describe('Commune INSEE code filter'),
-      year: z.number().int().optional().describe('Filing year (AN_DEPOT)'),
-      type: z.enum(['PC', 'DP', 'PA']).optional().describe('Authorization type: PC, DP, PA'),
-      limit: z.number().int().min(1).max(500).default(100),
+      commune: z.string().optional().describe('Commune INSEE code, exact match (e.g. "97411" for Saint-Denis)'),
+      year: z.number().int().optional().describe('Filing year (4 digits)'),
+      type: z.enum(['PC', 'DP', 'PA']).optional().describe('Authorization type: "PC" = Permis de Construire (full construction permit), "DP" = Déclaration Préalable (light works), "PA" = Permis d\'Aménager (land development)'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max permits to return (1-500, default 100)'),
     },
     async ({ commune, year, type, limit }) => {
       try {
