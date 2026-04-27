@@ -18,12 +18,12 @@ const DATASET_TRAINING_ORGS = 'region-liste-des-organismes-de-formation-et-des-c
 export function registerEducationTools(server: McpServer): void {
   server.tool(
     'reunion_get_college_ips',
-    'Get the DEPP social position index (IPS) of Réunion middle schools (collèges).',
+    'DEPP Indice de Position Sociale (IPS) of middle schools (collèges) in La Réunion. IPS is a 50-200 score that summarizes the average socio-professional category of pupils\' parents (higher = more privileged students). It is the standard tool to assess school social mix and educational inequality. Returns school name, UAI ID, commune, sector (Public/Privé sous contrat), school year, IPS value, IPS standard deviation. Sorted IPS descending.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      sector: z.enum(['Public', 'Privé sous contrat']).optional(),
-      rentree: z.string().optional().describe('School year, e.g. "2022-2023"'),
-      limit: z.number().int().min(1).max(500).default(100),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      sector: z.enum(['Public', 'Privé sous contrat']).optional().describe('School sector: "Public" (public) or "Privé sous contrat" (subsidized private)'),
+      rentree: z.string().optional().describe('School year (rentrée), format YYYY-YYYY. Examples: "2021-2022", "2022-2023"'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max schools to return (1-500, default 100)'),
     },
     async ({ commune, sector, rentree, limit }) => {
       try {
@@ -56,11 +56,11 @@ export function registerEducationTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_gen2024_schools',
-    'List Réunion schools labelled "Génération 2024" (sport-oriented label tied to the Paris Olympics).',
+    'List schools in La Réunion that received the "Génération 2024" label — a Ministry of Education + Sport designation tied to the Paris 2024 Olympics, awarded to schools that develop sport-oriented projects (extra hours, partnerships with clubs, Olympic Day events). Returns school name, UAI, type (école/collège/lycée), sector, commune, total enrollment, priority-zone status, ULIS/SEGPA/sport-section flags, lycée-des-métiers flag.',
     {
-      commune: z.string().optional(),
-      type: z.string().optional().describe('Establishment type: école, collège, lycée, …'),
-      limit: z.number().int().min(1).max(300).default(100),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      type: z.string().optional().describe('Establishment type prefix match. Examples: "Ecole", "Collège", "Lycée"'),
+      limit: z.number().int().min(1).max(300).default(100).describe('Max schools to return (1-300, default 100)'),
     },
     async ({ commune, type, limit }) => {
       try {
@@ -95,12 +95,12 @@ export function registerEducationTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_parcoursup_formations',
-    'Search post-baccalaureate training programs available via Parcoursup in Réunion.',
+    'Search post-baccalaureate higher-education programs available via Parcoursup (the national university admissions platform) in La Réunion. Covers BTS, BUT, licences, classes prépa, écoles d\'ingénieurs, IFSI, etc. Returns session year, school name, UAI, sector, formation type code, long name, mention/specialty, apprenticeship availability, commune, official Parcoursup fiche URL. Source: Parcoursup open data via data.regionreunion.com.',
     {
-      year: z.string().optional().describe('Session year, e.g. "2025"'),
-      query: z.string().optional().describe('Free-text search on formation name/specialty'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(50),
+      year: z.string().optional().describe('Parcoursup session year, 4 digits (e.g. "2024", "2025")'),
+      query: z.string().optional().describe('Free-text search across formation name, specialty, mention'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max formations to return (1-500, default 50)'),
     },
     async ({ year, query, commune, limit }) => {
       try {
@@ -135,13 +135,13 @@ export function registerEducationTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_schools',
-    'Search geolocated primary and secondary schools in La Réunion (UAI directory).',
+    'Search the official Annuaire de l\'Éducation Nationale (UAI directory) of geolocated primary and secondary schools in La Réunion: maternelles, élémentaires, collèges, lycées, both public and private. Returns UAI identifier, official name, main denomination, patronym, sector, address, postal code, commune, nature (school type), administrative state (open/closed), opening date, lat/lon. Source: Ministère de l\'Éducation Nationale via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      sector: z.enum(['Public', 'Privé']).optional().describe('Sector filter'),
-      nature: z.string().optional().describe('School nature filter (prefix match on nature_uai_libe, e.g. "COLLEGE")'),
-      limit: z.number().int().min(1).max(200).default(50),
+      query: z.string().optional().describe('Free-text search across name, address, denomination'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      sector: z.enum(['Public', 'Privé']).optional().describe('School sector: "Public" or "Privé"'),
+      nature: z.string().optional().describe('School nature/type prefix match. Examples: "ECOLE PRIMAIRE", "ECOLE MATERNELLE", "COLLEGE", "LYCEE GENERAL ET TECHNOLOGIQUE", "LYCEE PROFESSIONNEL"'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max schools to return (1-200, default 50)'),
     },
     async ({ query, commune, sector, nature, limit }) => {
       try {
@@ -180,12 +180,12 @@ export function registerEducationTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_lycee_ips',
-    'Social Position Index (IPS) for lycées in La Réunion, per school year and pathway.',
+    'DEPP Indice de Position Sociale (IPS) for high schools (lycées) in La Réunion, by school year and pathway. Unlike colleges, lycées have separate IPS for the general/technological track (voie GT) and the vocational track (voie pro), plus a combined IPS. Returns school year, UAI, name, commune, sector, lycée type, three IPS values + standard deviations for GT and pro. Higher IPS = more privileged students.',
     {
-      school: z.string().optional().describe('School name filter (prefix match)'),
-      school_year: z.string().optional().describe('School year filter, e.g. "2022-2023"'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      limit: z.number().int().min(1).max(200).default(50),
+      school: z.string().optional().describe('School name prefix match'),
+      school_year: z.string().optional().describe('School year (rentrée), format YYYY-YYYY (e.g. "2022-2023")'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max rows to return (1-200, default 50)'),
     },
     async ({ school, school_year, commune, limit }) => {
       try {
@@ -221,11 +221,11 @@ export function registerEducationTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_priority_education_schools',
-    'List REP / REP+ priority-education schools in La Réunion.',
+    'List schools in La Réunion that belong to the Education Prioritaire program (REP / REP+) — networks of schools serving disadvantaged areas, with extra resources, smaller class sizes, and bonus pay for teachers. REP+ is the more intensive tier. Returns UAI, school name, type, public/private status, EP label (REP/REP+), network-head UAI (collège tête de réseau), nearby QPV flag and name, student count, commune, postal code, lat/lon.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      ep_label: z.string().optional().describe('Priority-education label (prefix match on ep_2022_2023, e.g. "REP", "REP+")'),
-      limit: z.number().int().min(1).max(500).default(100),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      ep_label: z.string().optional().describe('Priority-education label prefix. Use "REP" for REP only, "REP+" for REP+ only'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max schools to return (1-500, default 100)'),
     },
     async ({ commune, ep_label, limit }) => {
       try {
@@ -262,13 +262,13 @@ export function registerEducationTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_higher_education_enrollment',
-    'Higher-education student enrollment per establishment, discipline, and diploma in La Réunion.',
+    'Higher-education student enrollment in La Réunion (Université de La Réunion mainly, plus other public establishments under MESR tutelle), broken down by establishment × diploma × level × discipline × sub-discipline × sex. Each row gives the count of enrolled students for a (year, axis) combination, plus the count of new bachelors. Returns academic year, year, establishment name and type, diploma label, level (L/M/D), grand discipline, sub-discipline, sex, headcount, total headcount for context, new-bachelor count, commune. Sorted year then headcount descending.',
     {
-      year: z.number().int().optional().describe('Academic year start (annee)'),
-      establishment: z.string().optional().describe('Establishment name filter (prefix match)'),
-      discipline: z.string().optional().describe('Grand discipline filter (prefix match)'),
-      diploma: z.string().optional().describe('Diploma group filter (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      year: z.number().int().optional().describe('Academic-year start (4 digits, e.g. 2022 means 2022-2023 academic year)'),
+      establishment: z.string().optional().describe('Establishment name prefix match (e.g. "Université de La Réunion")'),
+      discipline: z.string().optional().describe('Grand discipline prefix match. Examples: "Droit", "Sciences", "Lettres et sciences humaines", "Médecine", "Économie"'),
+      diploma: z.string().optional().describe('Diploma group prefix match. Examples: "Licence", "Master", "Doctorat", "DUT", "BUT"'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max rows to return (1-500, default 100)'),
     },
     async ({ year, establishment, discipline, diploma, limit }) => {
       try {
@@ -308,12 +308,12 @@ export function registerEducationTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_training_organizations',
-    'Search training organizations (OF) and apprenticeship centers (CFA) in La Réunion.',
+    'Search professional-training organizations (Organismes de Formation, OF) and apprenticeship-training centers (CFA, including company-internal CFAs) declared in La Réunion. These are the providers eligible for CPF (Compte Personnel de Formation) funding and apprenticeship contracts. Returns SIRET, raison sociale, acronym, déclaration d\'activité (DA) number, CFA flags, NAF activity code, main activity, legal status, contact email/phone, address, and Qualiopi certification status (training and apprenticeship streams). Source: Région Réunion via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search'),
-      commune: z.string().optional().describe('Commune filter (prefix match on physical-address city)'),
-      is_cfa: z.boolean().optional().describe('Return only CFAs'),
-      limit: z.number().int().min(1).max(200).default(50),
+      query: z.string().optional().describe('Free-text search across name, activity, address'),
+      commune: z.string().optional().describe('City prefix match on the physical address (e.g. "Saint-Denis")'),
+      is_cfa: z.boolean().optional().describe('If true, return only CFAs (apprenticeship-training centers)'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max organizations to return (1-200, default 50)'),
     },
     async ({ query, commune, is_cfa, limit }) => {
       try {
