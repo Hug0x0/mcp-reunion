@@ -17,13 +17,13 @@ const DATASET_SAINT_DENIS_QUARTERS = 'les-20-quartiers-villesaintdenis';
 export function registerGeographyTools(server: McpServer): void {
   server.tool(
     'reunion_search_ban_addresses',
-    'Search normalized Base Adresse Nationale (BAN) addresses in Réunion. ~353k addresses.',
+    'Search the Base Adresse Nationale (BAN) — France\'s authoritative geocoded address database — restricted to La Réunion (~353k addresses). Each address has lat/lon, street name, number, postal code, INSEE code, and a position type (entrance, parcel, segment). Use this for geocoding, address validation, last-mile delivery, mapping. Source: IGN / La Poste / DINUM via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search on street / city'),
-      commune: z.string().optional().describe('Commune name filter (prefix match)'),
-      insee: z.number().int().optional().describe('INSEE commune code filter'),
-      postal_code: z.number().int().optional().describe('Postal code filter'),
-      limit: z.number().int().min(1).max(100).default(20),
+      query: z.string().optional().describe('Free-text search across street name and city'),
+      commune: z.string().optional().describe('Commune name prefix match (e.g. "Saint-Denis")'),
+      insee: z.number().int().optional().describe('INSEE commune code (5 digits as integer, e.g. 97411 for Saint-Denis)'),
+      postal_code: z.number().int().optional().describe('Postal code as integer (5 digits, Réunion uses 974xx)'),
+      limit: z.number().int().min(1).max(100).default(20).describe('Max addresses to return (1-100, default 20)'),
     },
     async ({ query, commune, insee, postal_code, limit }) => {
       try {
@@ -58,11 +58,11 @@ export function registerGeographyTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_bal_possession',
-    'Search the Base Adresse Locale (BAL) published directly by the Commune of La Possession.',
+    'Search the Base Adresse Locale (BAL) published directly by the Commune of La Possession (west Réunion). BALs are commune-level address registries that feed BAN. This dataset is more granular than BAN for Possession addresses, including local lieux-dits, cadastral parcels, and last-update timestamps. Returns UID, interop key, street name, lieu-dit complement, suffix, longitude, latitude, cadastral parcels, last update.',
     {
-      query: z.string().optional(),
-      street: z.string().optional().describe('Street name filter (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(20),
+      query: z.string().optional().describe('Free-text search on the address fields'),
+      street: z.string().optional().describe('Street name prefix match (e.g. "Rue de", "Chemin")'),
+      limit: z.number().int().min(1).max(100).default(20).describe('Max addresses to return (1-100, default 20)'),
     },
     async ({ query, street, limit }) => {
       try {
@@ -95,10 +95,10 @@ export function registerGeographyTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_communes',
-    'List Réunion communes with their INSEE code, EPCI, zone d\'emploi, bassin de vie, department and region.',
+    'List the 24 communes of La Réunion with their full INSEE administrative attributes: name, INSEE code (5 digits, "974xx"), current code (handles fusions), EPCI code and name, zone d\'emploi 2020 name, bassin de vie 2022 name, department, region, year reference. Useful for territorial joins, statistical aggregation, administrative hierarchy reasoning. Use reunion_find_commune (commune module) for fuzzy commune resolution.',
     {
-      epci_name: z.string().optional().describe('EPCI name filter (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(50),
+      epci_name: z.string().optional().describe('EPCI name prefix match. Réunion has 5 EPCIs: "CINOR" (north), "TCO" (west), "CIVIS" (south-west), "CASUD" (south), "CIREST" (east)'),
+      limit: z.number().int().min(1).max(100).default(50).describe('Max communes to return (1-100, default 50). Réunion has 24 communes total'),
     },
     async ({ epci_name, limit }) => {
       try {
@@ -129,9 +129,9 @@ export function registerGeographyTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_cantons',
-    'List Réunion electoral cantons.',
+    'List the electoral cantons of La Réunion (used for departmental elections, "élections cantonales/départementales"). Each canton elects a binôme (2 conseillers départementaux). Returns canton code, name, current code (handles redistricting), type, department, region, central polling-bureau, year reference. Useful for electoral analysis, conseil départemental research.',
     {
-      limit: z.number().int().min(1).max(100).default(50),
+      limit: z.number().int().min(1).max(100).default(50).describe('Max cantons to return (1-100, default 50)'),
     },
     async ({ limit }) => {
       try {
@@ -155,9 +155,9 @@ export function registerGeographyTools(server: McpServer): void {
     }
   );
 
-  server.tool(
+    server.tool(
     'reunion_list_epci',
-    'List Réunion EPCI (intercommunalités / métropoles / communautés d\'agglomération).',
+    'List EPCI (Établissements Publics de Coopération Intercommunale) covering La Réunion. Réunion has 5 communautés d\'agglomération grouping its 24 communes: CINOR (north), TCO (west), CIVIS (south-west), CASUD (south), CIREST (east). Returns EPCI code, name, current code (handles regroupings), type, department, region, year reference. Use to aggregate commune-level data at the inter-municipal level.',
     {},
     async () => {
       try {
@@ -182,10 +182,10 @@ export function registerGeographyTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_iris',
-    'List Réunion IRIS (fine statistical geography used by INSEE for census/inequality analysis).',
+    'List IRIS (Îlots Regroupés pour l\'Information Statistique) — INSEE\'s fine sub-communal statistical geography (~2000 inhabitants per zone), used for census, income, poverty, employment data. Returns IRIS code (9 digits), name, IRIS type (H = habitat, A = activité, D = divers), commune name and code, EPCI name, grand-quartier code and name, year reference. Combine with reunion_iris_profile (commune module) for cross-dataset IRIS analysis or reunion_get_income_poverty_by_iris (economy module).',
     {
-      commune: z.string().optional().describe('Commune name filter (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max IRIS to return (1-500, default 100)'),
     },
     async ({ commune, limit }) => {
       try {
@@ -215,7 +215,7 @@ export function registerGeographyTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_saint_denis_quarters',
-    'List the 20 official quarters of the City of Saint-Denis (Réunion).',
+    'List the 20 official quarters (quartiers) of the city of Saint-Denis, capital of La Réunion. Saint-Denis is divided administratively into these named neighborhoods used for local-policy targeting, services planning, and citizen participation. Returns quarter name and source.',
     {},
     async () => {
       try {
