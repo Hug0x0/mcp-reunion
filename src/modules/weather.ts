@@ -11,12 +11,12 @@ const DATASET_SYNOP = 'donnees-synop-essentielles-ommpublic';
 export function registerWeatherTools(server: McpServer): void {
   server.tool(
     'reunion_get_weather_observations',
-    'Get Météo France SYNOP weather observations for Réunion stations (temperature, humidity, wind, pressure, rainfall).',
+    'Météo-France SYNOP synoptic weather observations from stations located in La Réunion. SYNOP is the WMO standard for surface observations (every 3 hours typically). Returns: station name, observation timestamp, commune, current temperature (°C), 12h min/max temperature, relative humidity (%), wind speed (m/s) and direction (degrees), sea-level pressure (Pa), 1h and 24h rainfall (mm), present-weather code. Sorted by date descending. Use reunion_list_weather_stations to discover available stations.',
     {
-      station: z.string().optional().describe('Filter by station name (e.g. "LE PORT", "GILLOT-AEROPORT")'),
-      from: z.string().optional().describe('ISO date lower bound (e.g. 2024-01-01)'),
-      to: z.string().optional().describe('ISO date upper bound'),
-      limit: z.number().int().min(1).max(100).default(20).describe('Max records'),
+      station: z.string().optional().describe('Station name prefix match (case-sensitive uppercase). Examples: "LE PORT", "GILLOT-AEROPORT" (Saint-Denis airport), "PIERREFONDS" (Saint-Pierre airport), "BELLECOMBE-JACOB"'),
+      from: z.string().optional().describe('Inclusive lower bound on date, ISO format YYYY-MM-DD'),
+      to: z.string().optional().describe('Inclusive upper bound on date, ISO format YYYY-MM-DD'),
+      limit: z.number().int().min(1).max(100).default(20).describe('Max observations to return (1-100, default 20)'),
     },
     async ({ station, from, to, limit }) => {
       try {
@@ -57,7 +57,7 @@ export function registerWeatherTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_weather_stations',
-    'List distinct Météo France SYNOP stations located in Réunion.',
+    'List all distinct Météo-France SYNOP synoptic stations active in La Réunion (deduped on station name + WMO number, with last-observation timestamp). Use this first to discover which stations are available before calling reunion_get_weather_observations with a specific station name.',
     {},
     async () => {
       try {
