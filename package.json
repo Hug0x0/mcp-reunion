@@ -20,7 +20,7 @@
     "LICENSE"
   ],
   "bin": {
-    "mcp-reunion": "./dist/index.js"
+    "mcp-reunion": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
