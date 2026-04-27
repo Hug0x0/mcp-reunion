@@ -12,11 +12,11 @@ const DATASET_BY_COMMUNE = 'demandeurs-d-emploi-inscrits-a-pole-emploi-par-commu
 export function registerEmploymentTools(server: McpServer): void {
   server.tool(
     'reunion_get_jobseekers_by_age_sex',
-    'Get monthly Pôle emploi jobseeker counts in Réunion broken down by age group and sex.',
+    'Monthly counts of Pôle emploi (now France Travail) jobseekers in La Réunion, broken down by sex and age group. Each row is one month. Returns total, total men, total women, then 6 sub-categories (men/women × <25 / 25-49 / ≥50). Sorted by month descending. Useful for labor-market monitoring, demographic analysis of unemployment, gender-gap studies.',
     {
-      from: z.string().optional().describe('ISO month lower bound, e.g. 2022-01-01'),
-      to: z.string().optional().describe('ISO month upper bound'),
-      limit: z.number().int().min(1).max(500).default(24).describe('Max months returned'),
+      from: z.string().optional().describe('Inclusive lower bound on month, ISO format YYYY-MM-DD (use first of month, e.g. "2022-01-01")'),
+      to: z.string().optional().describe('Inclusive upper bound on month, ISO format YYYY-MM-DD'),
+      limit: z.number().int().min(1).max(500).default(24).describe('Max months to return (1-500, default 24 = 2 years)'),
     },
     async ({ from, to, limit }) => {
       try {
@@ -52,11 +52,11 @@ export function registerEmploymentTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_jobseekers_by_commune',
-    'Get Pôle emploi jobseeker counts in Réunion by commune.',
+    'Pôle emploi (France Travail) jobseeker counts in La Réunion broken down by commune of residence, per snapshot date. Returns date, commune, INSEE code, postal code, jobseeker count. Sorted by date then jobseekers descending. Combine with reunion_get_commune_population (commune module) to compute unemployment rates per commune. Source: France Travail / Pôle emploi via data.regionreunion.com.',
     {
-      commune: z.string().optional().describe('Commune name filter (prefix match)'),
-      postal_code: z.string().optional().describe('Postal code filter'),
-      limit: z.number().int().min(1).max(500).default(50),
+      commune: z.string().optional().describe('Commune name prefix match (e.g. "Saint-Denis", "Saint-Pierre")'),
+      postal_code: z.string().optional().describe('Exact postal code (5 digits, Réunion uses "974xx")'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max records to return (1-500, default 50)'),
     },
     async ({ commune, postal_code, limit }) => {
       try {
