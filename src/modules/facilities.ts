@@ -13,12 +13,12 @@ const DATASET_POOLS = 'data-bassin-de-natation';
 export function registerFacilityTools(server: McpServer): void {
   server.tool(
     'reunion_search_public_facilities',
-    'Search INSEE Base Permanente des Équipements (BPE) entries in Réunion: schools, shops, services, transport, sports, health, tourism.',
+    'Search the INSEE Base Permanente des Équipements (BPE) for La Réunion. BPE is the reference inventory of facilities providing services to the public: shops (commerces), education, health, social services, transport, sports, tourism, public administration. Each row is one geocoded equipment with INSEE category code. Returns equipment name and code, category, commune, EPCI, year, geocoding quality. Use this for accessibility/coverage analysis, market studies, urban planning.',
     {
-      category: z.string().optional().describe('Category filter, e.g. "Services aux particuliers", "Santé"'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      equipment_name: z.string().optional().describe('Equipment label search (substring)'),
-      limit: z.number().int().min(1).max(500).default(50),
+      category: z.string().optional().describe('Equipment category prefix match. Examples: "Services aux particuliers", "Commerce", "Enseignement", "Santé", "Sports, loisirs et culture", "Transports et tourisme"'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      equipment_name: z.string().optional().describe('Free-text search on the equipment name'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max equipments to return (1-500, default 50)'),
     },
     async ({ category, commune, equipment_name, limit }) => {
       try {
@@ -51,11 +51,11 @@ export function registerFacilityTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_swimming_pools',
-    'List swimming-pool installations in Réunion with commune, equipment type and accessibility information.',
+    'List swimming-pool basins in La Réunion (subset of the national sport-equipment registry RES, filtered to pool-related equipment types). Each row is one basin within an installation. Returns installation name, equipment name, type, family, address, postal code, commune, reduced-mobility accessibility flag, public-transport accessibility flag. Useful for sport-policy analysis, accessibility studies, family activities planning.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      type: z.string().optional().describe('Equipment type filter (prefix match), e.g. "Bassin"'),
-      limit: z.number().int().min(1).max(300).default(50),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      type: z.string().optional().describe('Sport-equipment type prefix match. Examples: "Bassin sportif", "Bassin de loisirs", "Bassin mixte"'),
+      limit: z.number().int().min(1).max(300).default(50).describe('Max pools to return (1-300, default 50)'),
     },
     async ({ commune, type, limit }) => {
       try {
@@ -88,12 +88,12 @@ export function registerFacilityTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_sport_facilities',
-    'Search sport facilities in Réunion (gymnases, stades, piscines, courts, terrains de boules, etc.).',
+    'Search the national sport-equipment registry (Recensement des Équipements Sportifs, RES) restricted to La Réunion. Covers all sport infrastructure: stadiums, gyms, swimming pools, tennis courts, boules courts, athletic tracks, climbing walls, skate parks, dojos, etc. Each row is one equipment within an installation. Returns installation and equipment names, type, family, address, postal code, commune, reduced-mobility accessibility, parking spaces. Source: Ministère des Sports via data.regionreunion.com.',
     {
-      type: z.string().optional().describe('Equipment type, e.g. "Tennis", "Football"'),
-      family: z.string().optional().describe('Equipment family filter'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(50),
+      type: z.string().optional().describe('Sport-equipment type prefix match. Examples: "Court de tennis", "Terrain de football", "Salle multisports", "Piste d\'athlétisme", "Mur d\'escalade"'),
+      family: z.string().optional().describe('Equipment family prefix match. Examples: "Petits terrains en accès libre", "Terrains de grands jeux", "Salles spécialisées", "Bassins de natation"'),
+      commune: z.string().optional().describe('Commune name prefix match'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max facilities to return (1-500, default 50)'),
     },
     async ({ type, family, commune, limit }) => {
       try {
