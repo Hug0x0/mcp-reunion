@@ -18,13 +18,13 @@ const GRANT_DATASETS: Record<string, string> = {
 export function registerPossessionTools(server: McpServer): void {
   server.tool(
     'reunion_possession_search_procurement',
-    'Search public procurement contracts (Socle Commun SCDL) awarded by the Commune of La Possession.',
+    'Search public-procurement contracts awarded by the Commune of La Possession (west Réunion), published in the Socle Commun des Données Locales (SCDL) format. Each row is one signed contract. Returns ID, nature (Marché / Accord-cadre / etc.), object/purpose, CPV code (Common Procurement Vocabulary), procedure type, place of execution, duration (months), notification date, publication date, amount (EUR), price form, holder identities, supplier city. Sorted by notification date descending. For BOAMP-published notices (broader than just Possession), use reunion_search_boamp.',
     {
-      query: z.string().optional().describe('Free-text search on contract purpose / object'),
-      nature: z.string().optional().describe('Contract nature filter, e.g. "Marché", "Accord-cadre"'),
-      procedure: z.string().optional().describe('Procedure type filter'),
-      min_amount: z.number().optional().describe('Minimum amount in EUR'),
-      limit: z.number().int().min(1).max(300).default(50),
+      query: z.string().optional().describe('Free-text search on contract object/purpose'),
+      nature: z.string().optional().describe('Exact contract nature. Examples: "Marché", "Accord-cadre", "Marché subséquent"'),
+      procedure: z.string().optional().describe('Exact procedure type. Examples: "Procédure adaptée", "Appel d\'offres ouvert", "Marché négocié"'),
+      min_amount: z.number().optional().describe('Minimum contract amount in EUR (inclusive)'),
+      limit: z.number().int().min(1).max(300).default(50).describe('Max contracts to return (1-300, default 50)'),
     },
     async ({ query, nature, procedure, min_amount, limit }) => {
       try {
@@ -64,12 +64,12 @@ export function registerPossessionTools(server: McpServer): void {
 
   server.tool(
     'reunion_possession_search_association_grants',
-    'Search grants awarded to associations by the Commune of La Possession.',
+    'Search subventions (grants) awarded to associations by the Commune of La Possession in 2022 or 2023 (separate annual datasets). Returns issuing authority, beneficiary association name, convention date, grant object/purpose, amount (EUR), nature, payment conditions, grant share %. Sorted by convention date descending. Useful for transparency analysis, association funding research, public-spending audit.',
     {
-      year: z.enum(['2022', '2023']).describe('Grant year dataset'),
-      beneficiary: z.string().optional().describe('Beneficiary name filter (substring)'),
-      min_amount: z.number().optional().describe('Minimum grant amount in EUR'),
-      limit: z.number().int().min(1).max(500).default(50),
+      year: z.enum(['2022', '2023']).describe('Grant year dataset: "2022" or "2023" (each year has its own dataset)'),
+      beneficiary: z.string().optional().describe('Beneficiary association name substring search'),
+      min_amount: z.number().optional().describe('Minimum grant amount in EUR (inclusive)'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max grants to return (1-500, default 50)'),
     },
     async ({ year, beneficiary, min_amount, limit }) => {
       try {
