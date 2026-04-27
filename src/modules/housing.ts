@@ -12,10 +12,10 @@ const DATASET_SOCIAL_COSTS = 'couts-et-surfaces-moyens-des-logements-sociaux-a-l
 export function registerHousingTools(server: McpServer): void {
   server.tool(
     'reunion_get_housing_overview',
-    'Get Réunion housing overview (population, housing stock, social-housing share, vacancy) from the Banque des Territoires atlas.',
+    'Comprehensive housing and demographic snapshot of La Réunion department from the Banque des Territoires atlas (1 row per publication year). Returns: population, density per km², 10-year population change, age structure (% <20 and ≥60), unemployment rate (T4), poverty rate, total housing units, principal residences, social-housing rate, vacancy rate, individual-housing rate, and social-park-specific indicators (count, average rent EUR/m²/month, average age, energy-poor rate for E/F/G DPE labels). Sorted by publication year descending.',
     {
-      year: z.string().optional().describe('Publication year filter, e.g. "2024"'),
-      limit: z.number().int().min(1).max(50).default(20),
+      year: z.string().optional().describe('Publication year filter, 4 digits (e.g. "2024")'),
+      limit: z.number().int().min(1).max(50).default(20).describe('Max yearly snapshots to return (1-50, default 20)'),
     },
     async ({ year, limit }) => {
       try {
@@ -55,10 +55,10 @@ export function registerHousingTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_social_housing_costs',
-    'Get median surfaces and cost per m² of social housing (construction and rehabilitation) in Réunion.',
+    'Median surfaces and unit costs of social-housing operations (logements sociaux) in La Réunion, broken down by year of signature and operation type (new construction vs rehabilitation). Returns median utility surface (m²), median price per m² (EUR), and median total cost per dwelling (EUR), for both construction and rehabilitation streams. Useful for HLM operator benchmarking, public-spending analysis, construction-cost evolution monitoring. Sorted year descending.',
     {
-      year: z.string().optional().describe('Signature year filter, e.g. "2023"'),
-      limit: z.number().int().min(1).max(50).default(20),
+      year: z.string().optional().describe('Operation signature year, 4 digits (e.g. "2023")'),
+      limit: z.number().int().min(1).max(50).default(20).describe('Max yearly rows to return (1-50, default 20)'),
     },
     async ({ year, limit }) => {
       try {
