@@ -16,12 +16,12 @@ const DATASET_POSSESSION_PROS = 'professionnels-de-sante-a-la-possession';
 export function registerHealthTools(server: McpServer): void {
   server.tool(
     'reunion_search_health_professionals',
-    'Search the CNAM health-professional directory, filtered to Réunion.',
+    'Search the CNAM Annuaire Santé directory of registered health professionals practicing in La Réunion. Returns name, profession, full address, postal code, phone, mode of practice, convention status (secteur 1/2), and SESAM-Vitale acceptance. Source: CNAM via data.regionreunion.com. Use this to find doctors, nurses, dentists, pharmacists, midwives, etc. by profession or location. For posted fees per act in La Possession specifically, use reunion_search_possession_health_pros.',
     {
-      profession: z.string().optional().describe('Profession name (prefix match), e.g. "Médecin", "Dentiste", "Infirmier"'),
-      commune: z.string().optional().describe('Commune filter (substring on address)'),
-      postal_code: z.string().optional().describe('Postal code filter'),
-      limit: z.number().int().min(1).max(200).default(50),
+      profession: z.string().optional().describe('Profession label, prefix match. Examples: "Médecin", "Médecin généraliste", "Chirurgien-dentiste", "Infirmier", "Masseur-Kinésithérapeute", "Sage-femme", "Pharmacien"'),
+      commune: z.string().optional().describe('Commune name to match against the address (substring search). Example: "Saint-Denis", "Saint-Pierre"'),
+      postal_code: z.string().optional().describe('Réunion postal code (exact match), e.g. "97400" for Saint-Denis, "97410" for Saint-Pierre'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Max results to return (1-200, default 50)'),
     },
     async ({ profession, commune, postal_code, limit }) => {
       try {
@@ -59,12 +59,12 @@ export function registerHealthTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_covid_emergency_stats',
-    'Get Réunion daily COVID-19 emergency-room attendances and SOS Médecins acts (age/sex breakdown).',
+    'Daily COVID-19 emergency-room attendance and SOS Médecins activity in La Réunion, broken down by age class. Returns per-day counts for ER COVID visits, total ER visits, COVID-related hospitalizations from ER, and SOS Médecins COVID acts. Source: Santé publique France via data.regionreunion.com. Sorted most recent first. Combine with reunion_get_covid_hospital_stats for in-hospital indicators.',
     {
-      from: z.string().optional().describe('ISO date lower bound'),
-      to: z.string().optional().describe('ISO date upper bound'),
-      age_label: z.string().optional().describe('Age-bracket label filter'),
-      limit: z.number().int().min(1).max(500).default(50),
+      from: z.string().optional().describe('Inclusive lower bound on date, ISO format YYYY-MM-DD (e.g. "2021-01-01")'),
+      to: z.string().optional().describe('Inclusive upper bound on date, ISO format YYYY-MM-DD (e.g. "2022-12-31")'),
+      age_label: z.string().optional().describe('Age-bracket label as published by SpF, e.g. "0-14 ans", "15-44 ans", "45-64 ans", "65-74 ans", "75 ans et plus", "Tous âges"'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max rows to return (1-500, default 50)'),
     },
     async ({ from, to, age_label, limit }) => {
       try {
@@ -97,12 +97,12 @@ export function registerHealthTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_covid_hospital_stats',
-    'Get Réunion daily COVID-19 hospital indicators (beds, ICU, discharges, deaths).',
+    'Daily in-hospital COVID-19 indicators for La Réunion: occupied conventional beds, occupied ICU beds, cumulative discharges, cumulative deaths, and daily new admissions / new ICU / new deaths / new discharges, with sex breakdown (Hommes/Femmes/Tous). Source: Santé publique France SI-VIC via data.regionreunion.com. Sorted most recent first. For ER attendance and SOS Médecins acts, use reunion_get_covid_emergency_stats.',
     {
-      from: z.string().optional(),
-      to: z.string().optional(),
-      sex: z.enum(['Hommes', 'Femmes', 'Tous']).optional(),
-      limit: z.number().int().min(1).max(500).default(50),
+      from: z.string().optional().describe('Inclusive lower bound on date, ISO format YYYY-MM-DD'),
+      to: z.string().optional().describe('Inclusive upper bound on date, ISO format YYYY-MM-DD'),
+      sex: z.enum(['Hommes', 'Femmes', 'Tous']).optional().describe('Sex filter: "Hommes" (men), "Femmes" (women), or "Tous" (combined)'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max rows to return (1-500, default 50)'),
     },
     async ({ from, to, sex, limit }) => {
       try {
@@ -138,13 +138,13 @@ export function registerHealthTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_pathology_prevalence',
-    'Get Réunion patient counts and prevalence by pathology, sex and age group (Sniiram-DCIR).',
+    'Patient counts and prevalence rates by pathology, sex and age group in La Réunion, from the CNAM Cartographie des pathologies (built on Sniiram-DCIR claims data). Pathologies are organized in a 3-level taxonomy (e.g. Cardio-vasculaire > Maladies coronaires > Syndrome coronarien aigu). Returns: year, pathology levels 1/2/3, age class, sex, patient count (ntop), reference population (npop), prevalence rate. Sorted by patient count descending.',
     {
-      pathology: z.string().optional().describe('Pathology search on level 1/2/3 labels'),
-      age_label: z.string().optional().describe('Age-group label filter'),
-      sex_label: z.string().optional().describe('Sex label filter: "hommes", "femmes", "tous sexes"'),
-      year: z.string().optional().describe('Year filter, e.g. "2021"'),
-      limit: z.number().int().min(1).max(500).default(50),
+      pathology: z.string().optional().describe('Substring search across pathology levels 1/2/3 labels (in French). Examples: "diabète", "cancer", "cardiovasculaire", "psychiatrique", "Maladies du foie"'),
+      age_label: z.string().optional().describe('Age-group label as published by CNAM. Examples: "Tous âges", "0-19 ans", "20-39 ans", "40-59 ans", "60-74 ans", "75 ans et +"'),
+      sex_label: z.string().optional().describe('Sex label (lowercase): "hommes", "femmes", or "tous sexes"'),
+      year: z.string().optional().describe('Year to filter on, 4 digits e.g. "2021". Data typically available 2015-2022'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max rows to return (1-500, default 50)'),
     },
     async ({ pathology, age_label, sex_label, year, limit }) => {
       try {
@@ -182,12 +182,12 @@ export function registerHealthTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_finess_establishments',
-    'Search Réunion health and social-care FINESS establishments (hospitals, EHPAD, clinics, social-care structures).',
+    'Search the FINESS national repertory of health and social-care establishments, restricted to La Réunion. Covers hospitals (CHU, CH, cliniques), EHPAD/retirement homes, mental-health facilities, dialysis centers, social-care structures (foyers, IME, ESAT), HAD, MAS, FAM, etc. Returns FINESS IDs (geographic + legal entity), names, category, status (public/private), tariff mode, address, phone, opening dates, SIRET. Source: Ministère de la Santé via data.regionreunion.com.',
     {
-      query: z.string().optional().describe('Free-text search on establishment name / address'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      category_label: z.string().optional().describe('Category label filter (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(50),
+      query: z.string().optional().describe('Free-text search across establishment name and address'),
+      commune: z.string().optional().describe('Commune prefix match (e.g. "Saint-" matches all "Saint-..." communes)'),
+      category_label: z.string().optional().describe('Establishment category label prefix. Examples: "Centre Hospitalier", "Etablissement d\'Hébergement pour Personnes Agées Dépendantes", "Centre Médico-Psychologique", "Pharmacie", "Cabinet"'),
+      limit: z.number().int().min(1).max(500).default(50).describe('Max establishments to return (1-500, default 50)'),
     },
     async ({ query, commune, category_label, limit }) => {
       try {
@@ -226,12 +226,12 @@ export function registerHealthTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_possession_health_pros',
-    'Search health professionals practicing in La Possession, with posted fees per act type.',
+    'Search health professionals practicing specifically in La Possession (commune in west Réunion), with posted fees per technical act. Unlike reunion_search_health_professionals which is directory-only, this returns the typical price per act, the secteur 1 OPTAM/OPTAM-CO rate, the off-OPTAM rate, and the social security reimbursement base. Useful to estimate out-of-pocket costs. Source: open data Mairie de La Possession via data.regionreunion.com.',
     {
-      profession: z.string().optional().describe('Profession filter (prefix match)'),
-      act_family: z.string().optional().describe('Technical-act family filter (prefix match)'),
-      convention: z.string().optional().describe('Convention status filter'),
-      limit: z.number().int().min(1).max(300).default(50),
+      profession: z.string().optional().describe('Profession prefix match. Examples: "Médecin", "Dentiste", "Kinésithérapeute"'),
+      act_family: z.string().optional().describe('Technical-act family prefix match. Examples: "Consultation", "Soins dentaires", "Imagerie"'),
+      convention: z.string().optional().describe('Convention status prefix. Examples: "Secteur 1", "Secteur 2", "Non conventionné"'),
+      limit: z.number().int().min(1).max(300).default(50).describe('Max rows to return (1-300, default 50)'),
     },
     async ({ profession, act_family, convention, limit }) => {
       try {
