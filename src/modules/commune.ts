@@ -32,9 +32,9 @@ async function settle<T>(label: string, p: Promise<T>): Promise<{ label: string;
 export function registerCommuneTools(server: McpServer): void {
   server.tool(
     'reunion_commune_profile',
-    'Comprehensive snapshot of a Réunion commune (population, QPV, schools, businesses, recent accidents, nearby museums). Combines 7 datasets in parallel.',
+    'Comprehensive cross-dataset snapshot of one La Réunion commune. Joins 8 sources in parallel (population, QPV count and list, IRIS count, school count, priority-education school count, active SIRENE establishments, 2019 road-accidents count, museums count and list) into a single structured response. Failures on individual dimensions are reported inline rather than failing the whole call. Use reunion_find_commune first if the commune name might be misspelled. For side-by-side multi-commune comparison use reunion_compare_communes.',
     {
-      commune: z.string().describe('Commune name (prefix match, case-sensitive, e.g. "Saint-Denis")'),
+      commune: z.string().describe('Commune name, used as case-sensitive prefix match. Examples: "Saint-Denis", "Le Tampon", "Saint-Pierre", "L\'Étang-Salé"'),
     },
     async ({ commune }) => {
       const prefix = `${commune}%`;
@@ -178,9 +178,9 @@ export function registerCommuneTools(server: McpServer): void {
 
   server.tool(
     'reunion_find_commune',
-    'Resolve a fuzzy / approximate Réunion commune name or typo to its canonical INSEE code, EPCI, département. Use this to disambiguate user input before calling other tools.',
+    'Fuzzy resolver: takes an approximate or misspelled La Réunion commune name and returns matching canonical communes with INSEE code, EPCI, department, region. Handles common variations: case insensitive, accent insensitive ("Etang Sale" → "L\'Étang-Salé"), abbreviations ("St-Denis" → "Saint-Denis"), missing punctuation. Always call this first when a user provides a commune name with any uncertainty before passing it to commune-filtered tools that expect exact prefix matches.',
     {
-      query: z.string().describe('Approximate commune name (case- and accent-insensitive)'),
+      query: z.string().describe('Approximate commune name. Examples: "saint denis", "St-Pierre", "etang sale", "Le Tampon"'),
     },
     async ({ query }) => {
       try {
@@ -247,13 +247,13 @@ export function registerCommuneTools(server: McpServer): void {
 
   server.tool(
     'reunion_compare_communes',
-    'Side-by-side comparison of 2-5 Réunion communes on population, QPV count, active SIRENE establishments, 2019 accidents, and priority-education schools. All dimensions fetched in parallel.',
+    'Side-by-side comparison of 2 to 5 La Réunion communes on key indicators: latest population (total), surface area (km²), QPV count, active SIRENE establishments, 2019 road accidents, priority-education schools count. All dimensions fetched in parallel for each commune. Returns one row per commune with all indicators. Useful for benchmarking, demographic studies, policy targeting. For deep-dive on one commune use reunion_commune_profile.',
     {
       communes: z
         .array(z.string())
         .min(2)
         .max(5)
-        .describe('2 to 5 commune names (prefix match each)'),
+        .describe('Array of 2 to 5 commune names. Each is used as case-sensitive prefix match. Example: ["Saint-Denis", "Saint-Pierre", "Le Tampon"]'),
     },
     async ({ communes }) => {
       const fetchOne = async (commune: string) => {
@@ -321,9 +321,9 @@ export function registerCommuneTools(server: McpServer): void {
 
   server.tool(
     'reunion_iris_profile',
-    'Profile of a single IRIS (fine statistical area used by INSEE): commune membership, income / poverty / inequality indicators (2014 millésime).',
+    'Detailed profile of one IRIS (fine sub-communal statistical area used by INSEE, ~2000 inhabitants). Returns IRIS metadata (code, name, type H/A/D, host commune, EPCI, grand-quartier) joined with 2014 income/poverty/inequality indicators (median income, quartiles, deciles, interdecile ratio, Gini, poverty rate, share of income from wages/unemployment/social benefits/pensions). Use reunion_list_iris (geography module) to discover IRIS codes for a commune.',
     {
-      iris_code: z.string().describe('IRIS code (9 digits, e.g. "974110101")'),
+      iris_code: z.string().describe('IRIS code, 9 digits string. Réunion IRIS codes start with "974". Example: "974110101"'),
     },
     async ({ iris_code }) => {
       const [meta, income] = await Promise.all([
