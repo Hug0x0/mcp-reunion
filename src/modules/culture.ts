@@ -15,7 +15,7 @@ const DATASET_MUSEUM_ATTENDANCE = 'frequentation-des-musees-de-franceculture';
 export function registerCultureTools(server: McpServer): void {
   server.tool(
     'reunion_list_museums',
-    'List officially-designated Musées de France in La Réunion.',
+    'List museums in La Réunion holding the official "Musée de France" designation (granted by the Ministry of Culture under the 2002 law). This designation guarantees scientific standards, public access, and inalienability of collections. Returns Muséofile ID, official name, commune, full address, postal code, phone, URL, designation decree date, lat/lon. Use reunion_get_museum_attendance for visitor statistics, reunion_search_joconde_collections for artwork records.',
     {},
     async () => {
       try {
@@ -43,12 +43,12 @@ export function registerCultureTools(server: McpServer): void {
 
   server.tool(
     'reunion_search_joconde_collections',
-    'Search the Joconde extract — artwork/object records from La Réunion museum collections.',
+    'Search the Joconde national database extract restricted to La Réunion museum collections. Joconde is the official catalog of artworks and objects held by French museums. Returns reference, title, author, domain (painting, sculpture, photography, ethnography, etc.), denomination, materials/techniques, period and millesime of creation, inventory number, museum, Muséofile code, description, location within museum, city. Useful for cultural research, art history, exhibition curation.',
     {
-      query: z.string().optional().describe('Free-text search (title, author, description...)'),
-      museum: z.string().optional().describe('Museum name filter (prefix match)'),
-      domain: z.string().optional().describe('Domain filter (peinture, sculpture, etc.)'),
-      limit: z.number().int().min(1).max(100).default(25),
+      query: z.string().optional().describe('Free-text search across title, author, description, denomination'),
+      museum: z.string().optional().describe('Museum name prefix match (e.g. "Musée Léon Dierx", "Stella Matutina")'),
+      domain: z.string().optional().describe('Domain prefix match. Examples: "peinture", "sculpture", "photographie", "ethnographie", "estampe", "dessin"'),
+      limit: z.number().int().min(1).max(100).default(25).describe('Max items to return (1-100, default 25)'),
     },
     async ({ query, museum, domain, limit }) => {
       try {
@@ -87,10 +87,10 @@ export function registerCultureTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_libraries',
-    'List public libraries in La Réunion.',
+    'List public libraries (bibliothèques publiques: BMVR, médiathèques, BCD, points lecture) in La Réunion. Returns library code, name, sub-name, street address, postal code, commune, INSEE code, statut (municipal / intercommunal), surface in m², opening-hours amplitude, host commune population. Useful for cultural-equipment mapping, accessibility analysis. Source: Ministère de la Culture / Bibliothèques publiques via data.regionreunion.com.',
     {
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(50),
+      commune: z.string().optional().describe('Commune name prefix match (e.g. "Saint-Denis", "Saint-Pierre")'),
+      limit: z.number().int().min(1).max(100).default(50).describe('Max libraries to return (1-100, default 50)'),
     },
     async ({ commune, limit }) => {
       try {
@@ -122,11 +122,11 @@ export function registerCultureTools(server: McpServer): void {
 
   server.tool(
     'reunion_list_festivals',
-    'List festivals held in La Réunion (music, performing arts, cinema, books, visual arts...).',
+    'List festivals taking place in La Réunion: music, performing arts, cinema/audiovisual, books and literature, visual and digital arts. Returns festival name, territorial scope, host commune, postal code, address, website, email, founding year, main period of occurrence, dominant discipline, sub-categories per discipline (music genre, cinema type, etc.). Source: Ministère de la Culture festival census via data.regionreunion.com.',
     {
-      discipline: z.string().optional().describe('Dominant discipline filter (prefix match)'),
-      commune: z.string().optional().describe('Commune filter (prefix match)'),
-      limit: z.number().int().min(1).max(100).default(50),
+      discipline: z.string().optional().describe('Dominant discipline prefix match. Examples: "Musique", "Spectacle vivant", "Cinéma", "Livre", "Arts visuels"'),
+      commune: z.string().optional().describe('Host commune name prefix match'),
+      limit: z.number().int().min(1).max(100).default(50).describe('Max festivals to return (1-100, default 50)'),
     },
     async ({ discipline, commune, limit }) => {
       try {
@@ -164,11 +164,11 @@ export function registerCultureTools(server: McpServer): void {
 
   server.tool(
     'reunion_get_museum_attendance',
-    'Annual attendance (paid / free / total) for each Musée de France in La Réunion.',
+    'Annual attendance figures for each Musée de France in La Réunion, broken down by paid vs free admissions. Returns year, museum name, Muséofile reference, city, paid visitors, free visitors, total visitors, notes, observations. Source: Ministère de la Culture / Patrimostat via data.regionreunion.com. Sorted by year descending. Useful for cultural-policy evaluation, tourism analysis.',
     {
-      year: z.number().int().optional().describe('Year filter'),
-      museum: z.string().optional().describe('Museum name filter (prefix match)'),
-      limit: z.number().int().min(1).max(500).default(100),
+      year: z.number().int().optional().describe('Year filter (4 digits, e.g. 2022)'),
+      museum: z.string().optional().describe('Museum name prefix match (e.g. "Léon Dierx", "Stella Matutina")'),
+      limit: z.number().int().min(1).max(500).default(100).describe('Max rows to return (1-500, default 100)'),
     },
     async ({ year, museum, limit }) => {
       try {
