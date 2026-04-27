@@ -1,6 +1,7 @@
 # mcp-reunion
 
 [![license](https://img.shields.io/github/license/Hug0x0/mcp-reunion?style=flat)](https://github.com/Hug0x0/mcp-reunion/blob/main/LICENSE)
+[![mcp-reunion MCP server](https://glama.ai/mcp/servers/Hug0x0/mcp-reunion/badges/score.svg)](https://glama.ai/mcp/servers/Hug0x0/mcp-reunion)
 
 MCP server for [La Réunion](https://data.regionreunion.com/) public open data, exposed over `stdio` for Claude Desktop and other MCP clients.
 
