@@ -10,7 +10,7 @@ const BASE = 'https://data.regionreunion.com/api/explore/v2.1/catalog/datasets';
 const TESTS = [
   // --- #19 Geography
   { pr: 19, tool: 'search_ban_addresses', dataset: 'ban-lareunion', params: { limit: 1 } },
-  { pr: 19, tool: 'search_ban_addresses (filtered)', dataset: 'ban-lareunion', params: { where: "code_postal = 97400", limit: 1 } },
+  { pr: 19, tool: 'search_ban_addresses (filtered)', dataset: 'ban-lareunion', params: { where: 'commune_insee = 97411', limit: 1 } },
   { pr: 19, tool: 'search_bal_possession', dataset: 'bal-la-possession', params: { limit: 1 } },
   { pr: 19, tool: 'list_communes', dataset: 'communes-millesime-france', params: { limit: 1 } },
   { pr: 19, tool: 'list_cantons', dataset: 'cantons-millesime-france', params: { limit: 1 } },

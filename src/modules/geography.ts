@@ -17,22 +17,20 @@ const DATASET_SAINT_DENIS_QUARTERS = 'les-20-quartiers-villesaintdenis';
 export function registerGeographyTools(server: McpServer): void {
   server.tool(
     'reunion_search_ban_addresses',
-    'Search the Base Adresse Nationale (BAN) — France\'s authoritative geocoded address database — restricted to La Réunion (~353k addresses). Each address has lat/lon, street name, number, postal code, INSEE code, and a position type (entrance, parcel, segment). Use this for geocoding, address validation, last-mile delivery, mapping. Source: IGN / La Poste / DINUM via data.regionreunion.com.',
+    'Search the Base Adresse Nationale (BAN) — France\'s authoritative geocoded address database — restricted to La Réunion (~343k addresses). Each address has lat/lon, street name, house number, INSEE commune code, source, last update date, and position type. Use this for geocoding, address validation, last-mile delivery, and mapping. Source: IGN / La Poste / DINUM via data.regionreunion.com.',
     {
       query: z.string().optional().describe('Free-text search across street name and city'),
       commune: z.string().optional().describe('Commune name prefix match (e.g. "Saint-Denis")'),
       insee: z.number().int().optional().describe('INSEE commune code (5 digits as integer, e.g. 97411 for Saint-Denis)'),
-      postal_code: z.number().int().optional().describe('Postal code as integer (5 digits, Réunion uses 974xx)'),
       limit: z.number().int().min(1).max(100).default(20).describe('Max addresses to return (1-100, default 20)'),
     },
-    async ({ query, commune, insee, postal_code, limit }) => {
+    async ({ query, commune, insee, limit }) => {
       try {
         const data = await client.getRecords<RecordObject>(DATASET_BAN, {
           where: buildWhere([
             query ? `search(${quote(query)})` : undefined,
-            commune ? `nom_commune LIKE ${quote(`${commune}%`)}` : undefined,
-            insee !== undefined ? `code_insee = ${insee}` : undefined,
-            postal_code !== undefined ? `code_postal = ${postal_code}` : undefined,
+            commune ? `commune_nom LIKE ${quote(`${commune}%`)}` : undefined,
+            insee !== undefined ? `commune_insee = ${insee}` : undefined,
           ]),
           limit,
         });
@@ -40,14 +38,15 @@ export function registerGeographyTools(server: McpServer): void {
           total_addresses: data.total_count,
           addresses: data.results.map((row) => ({
             number: pickNumber(row, ['numero']),
-            suffix: pickString(row, ['rep']),
-            street: pickString(row, ['nom_voie']),
-            postal_code: pickNumber(row, ['code_postal']),
-            insee_code: pickNumber(row, ['code_insee']),
-            commune: pickString(row, ['nom_commune']),
-            lon: pickNumber(row, ['lon']),
+            suffix: pickString(row, ['suffixe']),
+            street: pickString(row, ['voie_nom']),
+            insee_code: pickNumber(row, ['commune_insee']),
+            commune: pickString(row, ['commune_nom']),
+            lon: pickNumber(row, ['long']),
             lat: pickNumber(row, ['lat']),
-            position_type: pickString(row, ['type_position']),
+            position_type: pickString(row, ['position']),
+            source: pickString(row, ['source']),
+            last_update: pickString(row, ['date_der_maj']),
           })),
         });
       } catch (error) {
