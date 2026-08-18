@@ -94,7 +94,7 @@ Each module lives in `src/modules/` and wires an OpenDataSoft dataset to one or 
 
 ## Production notes
 
-- Runtime: Node.js 18+
+- Runtime: Node.js 20+
 - Transport: `stdio`
 - Upstream API: `https://data.regionreunion.com/api/explore/v2.1`
 - Authentication: none
