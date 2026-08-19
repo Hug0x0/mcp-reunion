@@ -8,6 +8,8 @@ import {
   pickNumber,
   pickBoolean,
   pickValue,
+  jsonResult,
+  errorResult,
 } from '../src/utils/helpers.js';
 
 describe('quote / escapeOdSqlString', () => {
@@ -86,5 +88,25 @@ describe('pickValue / pickString / pickNumber / pickBoolean', () => {
     expect(pickBoolean({ v: 'non' }, ['v'])).toBe(false);
     expect(pickBoolean({ v: 0 }, ['v'])).toBe(false);
     expect(pickBoolean({ v: 'maybe' }, ['v'])).toBeUndefined();
+  });
+});
+
+describe('tool result helpers', () => {
+  it('adds structuredContent for JSON object results', () => {
+    const result = jsonResult({ total: 1, rows: [{ name: 'Saint-Denis' }] });
+
+    expect(result.structuredContent).toEqual({
+      total: 1,
+      rows: [{ name: 'Saint-Denis' }],
+    });
+    expect(JSON.parse(result.content[0].text)).toEqual(result.structuredContent);
+  });
+
+  it('marks error results with isError and structuredContent', () => {
+    const result = errorResult('Upstream unavailable');
+
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent).toEqual({ error: 'Upstream unavailable' });
+    expect(JSON.parse(result.content[0].text)).toEqual(result.structuredContent);
   });
 });

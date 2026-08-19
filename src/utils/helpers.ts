@@ -6,6 +6,11 @@ import { RecordObject, ToolResult } from '../types.js';
  * Format data as JSON tool result
  */
 export function jsonResult(data: unknown): ToolResult {
+  const structuredContent =
+    typeof data === 'object' && data !== null && !Array.isArray(data)
+      ? (data as RecordObject)
+      : undefined;
+
   return {
     content: [
       {
@@ -13,6 +18,7 @@ export function jsonResult(data: unknown): ToolResult {
         text: JSON.stringify(data, null, 2),
       },
     ],
+    ...(structuredContent ? { structuredContent } : {}),
   };
 }
 
@@ -20,13 +26,17 @@ export function jsonResult(data: unknown): ToolResult {
  * Format error as tool result
  */
 export function errorResult(message: string): ToolResult {
+  const structuredContent = { error: message };
+
   return {
     content: [
       {
         type: 'text',
-        text: JSON.stringify({ error: message }, null, 2),
+        text: JSON.stringify(structuredContent, null, 2),
       },
     ],
+    structuredContent,
+    isError: true,
   };
 }
 
