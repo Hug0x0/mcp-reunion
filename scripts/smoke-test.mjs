@@ -78,6 +78,10 @@ const TESTS = [
   { pr: 35, tool: 'get_presidential_2022_round1', dataset: 'resultats-des-elections-presidentielles-2022-1er-tour-par-bureau-de-vote-a-la-re', params: { order_by: 'voix DESC', limit: 1 } },
   { pr: 35, tool: 'search_boamp', dataset: 'boamp', params: { order_by: 'dateparution DESC', limit: 1 } },
   { pr: 35, tool: 'list_water_management_points', dataset: 'les-points-d-activite-ou-d-interet-la-gestion-des-eaux', params: { limit: 1 } },
+
+  // --- #67 Dedicated heritage datasets
+  { pr: 67, tool: 'list_unesco_perimeters', dataset: 'pnrun_unesco_perimetre', params: { limit: 1 } },
+  { pr: 67, tool: 'list_unesco_value_contributions', dataset: 'pnrun_unesco_contribvue_vii', params: { limit: 1 } },
 ];
 
 // data.gouv.fr tabular-api smoke targets — separate base URL, separate run.
