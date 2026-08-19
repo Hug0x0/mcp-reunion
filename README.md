@@ -7,7 +7,7 @@ MCP server for [La Réunion](https://data.regionreunion.com/) public open data, 
 
 ## What it covers
 
-Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A small **National elections** module also queries `tabular-api.data.gouv.fr` for the 2024 anticipated legislative + European results that the regional portal doesn't carry. Currently **99 tools** across 22 modules. A **catalog** module lets the client reach any of the ~270 datasets at `data.regionreunion.com` that aren't wired to a dedicated tool yet.
+Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A small **National elections** module also queries `tabular-api.data.gouv.fr` for the 2024 anticipated legislative + European results that the regional portal doesn't carry. Currently **100 tools** across 23 modules. A **catalog** module lets the client reach any of the ~270 datasets at `data.regionreunion.com` that aren't wired to a dedicated tool yet.
 
 ## Modules
 
@@ -25,6 +25,7 @@ Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A
 - **National elections** (`tabular-api.data.gouv.fr` — Ministère de l'Intérieur) — 2024 anticipated legislative results (rounds 1 & 2) per Réunion circonscription, and 2024 European results aggregated for département 974. Complements the 2022 results carried by the regional portal.
 - **Housing** (`logements-et-logements-sociaux-…`, `couts-et-surfaces-moyens-…`) — departmental housing atlas and social-housing costs.
 - **Possession** (`donnees-essentielles-marches-publics-…`, `subventions-attribuees-…`) — La Possession public procurement contracts and association grants.
+- **Router** — `reunion_find_relevant_tools`, a deterministic helper that maps natural-language questions to likely tools, datasets, and query flows.
 - **Social** — CAF beneficiaries and prestation amounts, childcare facilities (Saint-Denis + Possession).
 - **Telecom** (`sites-mobiles-5g-a-la-reunion`, `arcep_regions`) — 5G cell sites per operator and FttH deployment coverage.
 - **Territory** — DVF real-estate transactions, INSEE commune population, La Poste postal codes, `potentiel foncier` land reserves, Sitadel residential construction permits.
