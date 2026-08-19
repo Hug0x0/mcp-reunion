@@ -7,7 +7,7 @@ MCP server for [La Réunion](https://data.regionreunion.com/) public open data, 
 
 ## What it covers
 
-Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A small **National elections** module also queries `tabular-api.data.gouv.fr` for the 2024 anticipated legislative + European results that the regional portal doesn't carry. Currently **103 tools** across 24 modules. A **catalog** module lets the client reach any of the ~270 datasets at `data.regionreunion.com` that aren't wired to a dedicated tool yet.
+Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A small **National elections** module also queries `tabular-api.data.gouv.fr` for the 2024 anticipated legislative + European results that the regional portal doesn't carry. Currently **104 tools** across 24 modules. A **catalog** module lets the client reach any of the ~270 datasets at `data.regionreunion.com` that aren't wired to a dedicated tool yet.
 
 ## Modules
 
@@ -31,7 +31,7 @@ Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A
 - **Telecom** (`sites-mobiles-5g-a-la-reunion`, `arcep_regions`) — 5G cell sites per operator and FttH deployment coverage.
 - **Territory** — DVF real-estate transactions, INSEE commune population, La Poste postal codes, `potentiel foncier` land reserves, Sitadel residential construction permits.
 - **Tourism** — family trails, canyoning routes, SIT Soubik landmarks & cultural POIs, hiking circuits, coastal trail, pools, monthly tourism frequentation since 2017.
-- **Transport** — TMJA road traffic, functional road classification, Car Jaune GTFS stops/routes, regional cycle network, road accidents (2016-2019), vehicle technical-inspection prices, daily flow & speed limits on national roads.
+- **Transport** — TMJA road traffic, functional road classification, Car Jaune GTFS stops/routes and planning context, regional cycle network, road accidents (2016-2019), vehicle technical-inspection prices, daily flow & speed limits on national roads.
 - **Urbanism** (`base-permanente-des-plu-de-la-reunion`, `liste-des-permis-de-constuire-…`) — PLU zoning and non-residential building permits (Sitadel).
 - **Weather** (`donnees-synop-essentielles-ommpublic`) — Météo France SYNOP observations for Réunion stations: temperature, humidity, wind, pressure, rainfall; plus a station-listing tool.
 - **Catalog** (meta) — `search_catalog`, `inspect_dataset`, `query_dataset`. Lets the agent discover and query any of the ~270 datasets not covered by a dedicated module, with a raw ODSQL `where` clause as escape hatch.

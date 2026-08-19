@@ -11,6 +11,7 @@ const DATASET_ROAD_CLASS = 'rn-classement-fonctionnel-lareunion';
 const DATASET_CYCLE = 'voie-velo-regionale';
 const DATASET_GTFS = 'donnees-gtfs-lareunion';
 const DATASET_GTFS_ROUTES = 'gtfs-routes-cars-jaunes-lareunion';
+const DATASET_GTFS_RT = 'cars-jaunes-gtfs-rt';
 const DATASET_ACCIDENTS = 'bases-de-donnees-annuelles-des-accidents-corporels-de-la-circulation-routiere';
 const DATASET_INSPECTION_PRICES = 'prix-des-controles-techniques-a-la-reunion';
 const DATASET_DAILY_FLOW = 'debit-journalier-rn-crlaeunion';
@@ -347,6 +348,60 @@ export function registerTransportTools(server: McpServer): void {
         });
       } catch (error) {
         return errorResult(error instanceof Error ? error.message : 'Failed to fetch speed limits');
+      }
+    }
+  );
+
+  server.tool(
+    'reunion_get_car_jaune_planning_context',
+    'Explain which Car Jaune transit datasets are available through the Réunion portal and which MCP tools to use for static transit coverage. This is a planning-context helper, not a door-to-door route planner: the portal exposes stops/routes and a GTFS-RT source, but not complete stop_times/trips tables as queryable OpenDataSoft datasets.',
+    {},
+    async () => {
+      try {
+        const [stopsMeta, routesMeta, realtimeMeta] = await Promise.all([
+          client.getDatasetMetadata(DATASET_GTFS),
+          client.getDatasetMetadata(DATASET_GTFS_ROUTES),
+          client.getDatasetMetadata(DATASET_GTFS_RT),
+        ]);
+
+        return jsonResult({
+          status: 'static_coverage_available',
+          route_planning_level: 'coverage and discovery, not schedule-accurate itinerary planning',
+          available_datasets: [
+            {
+              dataset_id: DATASET_GTFS,
+              title: stopsMeta?.metas?.default?.title,
+              records_count: stopsMeta?.metas?.default?.records_count,
+              use_for: 'Stop search and nearby stop discovery',
+              recommended_tools: ['reunion_search_car_jaune_stops', 'reunion_nearby_car_jaune_stops'],
+            },
+            {
+              dataset_id: DATASET_GTFS_ROUTES,
+              title: routesMeta?.metas?.default?.title,
+              records_count: routesMeta?.metas?.default?.records_count,
+              use_for: 'Route/line catalog',
+              recommended_tools: ['reunion_list_car_jaune_routes'],
+            },
+            {
+              dataset_id: DATASET_GTFS_RT,
+              title: realtimeMeta?.metas?.default?.title,
+              records_count: realtimeMeta?.metas?.default?.records_count,
+              use_for: 'Realtime feed discovery; not yet exposed as structured table tools',
+              recommended_tools: ['reunion_search_catalog', 'reunion_inspect_dataset'],
+            },
+          ],
+          limitations: [
+            'No queryable stop_times/trips tables are currently exposed as regular OpenDataSoft records.',
+            'The MCP should not claim schedule-accurate door-to-door routing until trips and stop times are available or parsed from a GTFS archive.',
+          ],
+          suggested_flow: [
+            'Use reunion_nearby_car_jaune_stops for stops near an origin or destination.',
+            'Use reunion_list_car_jaune_routes to inspect available Car Jaune lines.',
+            'Use catalog tools to inspect the GTFS-RT source if realtime metadata is needed.',
+          ],
+        });
+      } catch (error) {
+        return errorResult(error instanceof Error ? error.message : 'Failed to inspect Car Jaune planning context');
       }
     }
   );
