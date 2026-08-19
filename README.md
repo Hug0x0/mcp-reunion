@@ -129,6 +129,16 @@ Each module lives in `src/modules/` and wires an OpenDataSoft dataset to one or 
 - `npm run check:schema` verifies high-value upstream dataset fields listed in [`schema-expectations.json`](schema-expectations.json).
 - `npm run docs:coverage` regenerates [`COVERAGE.md`](COVERAGE.md).
 
+## Optional local telemetry
+
+Tool-call telemetry is disabled by default. To debug local usage patterns without sending anything to a remote service:
+
+```bash
+MCP_REUNION_TELEMETRY=local npx -y mcp-reunion
+```
+
+This writes JSONL records to `.mcp-reunion-telemetry.jsonl` by default. Override the path with `MCP_REUNION_TELEMETRY_PATH`.
+
 ## License
 
 MIT — adapted from [lacausecrypto/mcp-new-caledonia](https://github.com/lacausecrypto/mcp-new-caledonia).
