@@ -29,6 +29,7 @@
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "test:smoke": "node scripts/smoke-test.mjs",
+    "docs:coverage": "node scripts/generate-coverage.mjs",
     "prepack": "npm run build",
     "prepublishOnly": "npm run build"
   },

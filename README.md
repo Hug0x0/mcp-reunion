@@ -36,6 +36,8 @@ Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A
 
 The `data.regionreunion.com` catalog exposes ~270 datasets. More modules can be added incrementally — see *Extending* below.
 
+For a generated module-by-module view of dataset and tool coverage, see [`COVERAGE.md`](COVERAGE.md).
+
 ## Reaching datasets that aren't wired yet
 
 The dedicated modules above cover the most-asked topics, but the portal has ~270 datasets in total. Instead of writing a new module for every long-tail question, the **catalog** module gives the MCP client three generic tools that together act as an escape hatch onto the whole portal:
