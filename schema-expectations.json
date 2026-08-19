@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Expected upstream fields for high-value datasets. Used by `npm run check:schema` to detect OpenDataSoft schema drift before tools break.",
+  "datasets": {
+    "ban-lareunion": [
+      "uid_adresse",
+      "commune_insee",
+      "commune_nom",
+      "voie_nom",
+      "numero",
+      "suffixe",
+      "position",
+      "long",
+      "lat",
+      "source",
+      "date_der_maj"
+    ],
+    "bal-la-possession": [
+      "uid_adresse",
+      "cle_interop",
+      "voie_nom",
+      "longitude",
+      "latitude",
+      "date_der_maj"
+    ],
+    "communes-millesime-france": [
+      "com_name",
+      "com_code",
+      "epci_code",
+      "epci_name",
+      "dep_name",
+      "reg_name"
+    ],
+    "iris-millesime-france": [
+      "iris_code",
+      "iris_name",
+      "com_name",
+      "com_code"
+    ],
+    "trafic-mja-rn-lareunion": [
+      "route",
+      "annee",
+      "tmja",
+      "commune"
+    ],
+    "donnees-gtfs-lareunion": [
+      "stop_id",
+      "stop_name",
+      "stop_coordinates",
+      "wheelchair_boarding"
+    ],
+    "gtfs-routes-cars-jaunes-lareunion": [
+      "route_id",
+      "route_short_name",
+      "route_long_name"
+    ],
+    "donnees-synop-essentielles-ommpublic": [
+      "nom",
+      "nom_reg",
+      "date",
+      "tc",
+      "u",
+      "ff",
+      "rr1"
+    ],
+    "annuaire-des-professionnels-de-santepublic": [
+      "nom",
+      "libelle_profession",
+      "code_postal",
+      "telephone"
+    ],
+    "base-sirene-v3-lareunion": [
+      "siren",
+      "siret",
+      "denominationunitelegale",
+      "libellecommuneetablissement",
+      "etatadministratifetablissement"
+    ],
+    "population-francaise-communespublic": [
+      "nom_de_la_commune",
+      "code_insee",
+      "population_totale",
+      "annee_recensement"
+    ],
+    "quartiers-prioritaires-de-la-politique-de-la-ville-qpv": [
+      "nom_qp",
+      "code_qp",
+      "commune_qp"
+    ]
+  }
+}

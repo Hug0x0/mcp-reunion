@@ -112,6 +112,11 @@ Each module lives in `src/modules/` and wires an OpenDataSoft dataset to one or 
 - Authentication: none
 - Language of source data: mostly French
 
+## Maintenance checks
+
+- `npm run check:schema` verifies high-value upstream dataset fields listed in [`schema-expectations.json`](schema-expectations.json).
+- `npm run docs:coverage` regenerates [`COVERAGE.md`](COVERAGE.md).
+
 ## License
 
 MIT — adapted from [lacausecrypto/mcp-new-caledonia](https://github.com/lacausecrypto/mcp-new-caledonia).
