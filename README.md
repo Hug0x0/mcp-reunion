@@ -7,7 +7,7 @@ MCP server for [La Réunion](https://data.regionreunion.com/) public open data, 
 
 ## What it covers
 
-Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A small **National elections** module also queries `tabular-api.data.gouv.fr` for the 2024 anticipated legislative + European results that the regional portal doesn't carry. Currently **106 tools** across 25 modules. A **catalog** module lets the client reach any of the ~270 datasets at `data.regionreunion.com` that aren't wired to a dedicated tool yet.
+Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A small **National elections** module also queries `tabular-api.data.gouv.fr` for the 2024 anticipated legislative + European results that the regional portal doesn't carry. Currently **108 tools** across 26 modules. A **catalog** module lets the client reach any of the ~270 datasets at `data.regionreunion.com` that aren't wired to a dedicated tool yet.
 
 ## Modules
 
@@ -21,6 +21,7 @@ Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A
 - **Facilities** (`base-permanente-des-equipements-geolocalisee-la-reunion`, `equipements-sportifs`) — INSEE BPE facilities and the national sport-equipment inventory, filtered to Réunion.
 - **Geography** (`ban-lareunion`, `bal-la-possession`, `communes-millesime-france`, `cantons-millesime-france`, `intercommunalites-millesime-france`, `iris-millesime-france`, `les-20-quartiers-villesaintdenis`) — BAN/BAL addresses and the official communes / cantons / EPCI / IRIS / Saint-Denis quarters reference layers.
 - **Health** — CNAM health-professional directory, COVID stats, pathologies, FINESS, Possession health pros.
+- **Heritage** — UNESCO World Heritage perimeters and Outstanding Universal Value criterion-vii contribution areas for La Réunion National Park.
 - **Hospitality** (`etablissements-touristiques-lareunion-wssoubik`, `hebergements-classespublic`, `localisation-potentielle-ecolodge-lareunion`) — tourism establishments, classified accommodations, ecolodge zones.
 - **Insights** — high-level composite dashboards for public services by commune and tourism.
 - **National elections** (`tabular-api.data.gouv.fr` — Ministère de l'Intérieur) — 2024 anticipated legislative results (rounds 1 & 2) per Réunion circonscription, and 2024 European results aggregated for département 974. Complements the 2022 results carried by the regional portal.
