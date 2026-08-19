@@ -131,6 +131,7 @@ Each module lives in `src/modules/` and wires an OpenDataSoft dataset to one or 
 
 - `npm run check:schema` verifies high-value upstream dataset fields listed in [`schema-expectations.json`](schema-expectations.json).
 - `npm run docs:coverage` regenerates [`COVERAGE.md`](COVERAGE.md).
+- Output conventions are documented in [`docs/output-contracts.md`](docs/output-contracts.md).
 - Release automation is documented in [`docs/release.md`](docs/release.md).
 
 ## Optional local telemetry
