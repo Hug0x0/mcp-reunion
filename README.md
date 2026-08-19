@@ -83,6 +83,16 @@ npm run dev
 }
 ```
 
+## Examples
+
+Prompt recipes live in [`examples/`](examples/):
+
+- [`claude-desktop.md`](examples/claude-desktop.md) — setup and first prompts
+- [`civic-analysis.md`](examples/civic-analysis.md) — commune and procurement analysis
+- [`elections.md`](examples/elections.md) — 2022 and 2024 election analysis
+- [`tourism.md`](examples/tourism.md) — tourism and outdoor activity prompts
+- [`transport.md`](examples/transport.md) — road and transit prompts
+
 ## Extending
 
 Each module lives in `src/modules/` and wires an OpenDataSoft dataset to one or more MCP tools via the shared `ReunionClient` (`src/client.ts`). To add a module:
