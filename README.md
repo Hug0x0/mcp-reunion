@@ -34,6 +34,7 @@ Primary source: the OpenDataSoft Explore v2.1 API at `data.regionreunion.com`. A
 - **Urbanism** (`base-permanente-des-plu-de-la-reunion`, `liste-des-permis-de-constuire-…`) — PLU zoning and non-residential building permits (Sitadel).
 - **Weather** (`donnees-synop-essentielles-ommpublic`) — Météo France SYNOP observations for Réunion stations: temperature, humidity, wind, pressure, rainfall; plus a station-listing tool.
 - **Catalog** (meta) — `search_catalog`, `inspect_dataset`, `query_dataset`. Lets the agent discover and query any of the ~270 datasets not covered by a dedicated module, with a raw ODSQL `where` clause as escape hatch.
+- **Resources** — static MCP resources for commune, EPCI, IRIS, catalog, and popular dataset reference data.
 
 The `data.regionreunion.com` catalog exposes ~270 datasets. More modules can be added incrementally — see *Extending* below.
 
@@ -95,6 +96,16 @@ Prompt recipes live in [`examples/`](examples/):
 - [`elections.md`](examples/elections.md) — 2022 and 2024 election analysis
 - [`tourism.md`](examples/tourism.md) — tourism and outdoor activity prompts
 - [`transport.md`](examples/transport.md) — road and transit prompts
+
+## MCP resources
+
+The server also exposes reference resources:
+
+- `reunion://communes`
+- `reunion://epci`
+- `reunion://iris`
+- `reunion://datasets/catalog`
+- `reunion://datasets/popular`
 
 ## Extending
 

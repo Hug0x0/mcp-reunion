@@ -4,6 +4,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerAllTools, TOOL_COUNT } from './modules/index.js';
+import { registerResources } from './resources.js';
 
 /**
  * MCP Server for Réunion Open Data (data.regionreunion.com).
@@ -20,12 +21,14 @@ async function main(): Promise<void> {
   });
 
   registerAllTools(server);
+  registerResources(server);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
   console.error('MCP Réunion server started');
   console.error(`Tools registered: ${TOOL_COUNT}`);
+  console.error('Resources registered: 5');
   console.error('API: https://data.regionreunion.com/api/explore/v2.1');
 }
 
