@@ -82,6 +82,20 @@
       "population_totale",
       "annee_recensement"
     ],
+    "pnrun_unesco_contribvue_vii": [
+      "nom_up",
+      "nom_ssuni",
+      "contrib_vu",
+      "contrib",
+      "surf",
+      "geo_point_2d"
+    ],
+    "pnrun_unesco_perimetre": [
+      "code",
+      "type",
+      "surf",
+      "geo_point_2d"
+    ],
     "quartiers-prioritaires-de-la-politique-de-la-ville-qpv": [
       "nom_qp",
       "code_qp",
