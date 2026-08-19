@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version without v prefix, e.g. 1.4.1'
+        required: true
+        type: string
+      publish_npm:
+        description: 'Publish package to npm'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Validate version input
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          node -e "const v = process.env.VERSION; if (!/^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$/.test(v)) { throw new Error('Invalid semver version: ' + v); }"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Check upstream schemas
+        run: npm run check:schema
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=low
+
+      - name: Verify package contents
+        run: npm pack --dry-run
+
+      - name: Set package version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: npm version "$VERSION" --no-git-tag-version
+
+      - name: Update MCP registry metadata version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          node -e "const fs = require('node:fs'); const file = 'server.json'; const data = JSON.parse(fs.readFileSync(file, 'utf8')); data.version = process.env.VERSION; if (Array.isArray(data.packages)) { data.packages = data.packages.map((pkg) => ({ ...pkg, version: process.env.VERSION })); } fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');"
+
+      - name: Commit release version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json server.json
+          git commit -m "chore: release v${VERSION}"
+
+      - name: Create tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: git tag "v${VERSION}"
+
+      - name: Publish to npm
+        if: inputs.publish_npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance
+
+      - name: Push release commit and tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: git push origin HEAD:main "v${VERSION}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: gh release create "v${VERSION}" --generate-notes --title "v${VERSION}"
+
