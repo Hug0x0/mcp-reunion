@@ -3,6 +3,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { client } from '../client.js';
+import { dataGouvClient } from '../clients/data-gouv.js';
 import { RecordObject } from '../types.js';
 import { errorResult, jsonResult, normalizeText, pickNumber, pickString, quote } from '../utils/helpers.js';
 
@@ -109,9 +110,8 @@ export function registerCommuneTools(server: McpServer): void {
         ),
         settle(
           'museums',
-          client.getRecords<RecordObject>('liste-des-musees-de-la-reunion', {
-            where: `commune LIKE ${quote(prefix)}`,
-            limit: 20,
+          dataGouvClient.queryAll<RecordObject>('5ccd6238-4fb0-4b2c-b14a-581909489320', {
+            filters: { Departement: 'La Réunion' },
           })
         ),
       ]);
@@ -155,11 +155,19 @@ export function registerCommuneTools(server: McpServer): void {
           accidents_2019: accidents.error ? null : accidents.value?.total_count ?? 0,
         },
         culture: {
-          museums_count: museums.error ? null : museums.value?.total_count ?? 0,
-          museums: museums.value?.results.map((row) => ({
-            name: pickString(row, ['nom_officiel_du_musee']),
-            museofile_id: pickString(row, ['identifiant_museofile']),
-          })) ?? [],
+          museums_count: museums.error
+            ? null
+            : museums.value?.data.filter((row) =>
+                normalizeText(pickString(row, ['Ville']) ?? '').startsWith(normalizeText(commune))
+              ).length ?? 0,
+          museums: museums.value?.data
+            .filter((row) =>
+              normalizeText(pickString(row, ['Ville']) ?? '').startsWith(normalizeText(commune))
+            )
+            .map((row) => ({
+              name: pickString(row, ['Nom_officiel']),
+              museofile_id: pickString(row, ['Identifiant']),
+            })) ?? [],
         },
         errors: [population, qpv, iris, schools, priorityEd, sirene, accidents, museums]
           .filter((r) => r.error)

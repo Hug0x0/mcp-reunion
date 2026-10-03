@@ -26,11 +26,7 @@ const TESTS = [
   { pr: 20, tool: 'get_petroleum_consumption', dataset: 'donnees-locales-de-consommation-de-produits-petroliers-a-la-reunion', params: { order_by: 'annee DESC', limit: 1 } },
 
   // --- #21 Culture
-  { pr: 21, tool: 'list_museums', dataset: 'liste-des-musees-de-la-reunion', params: { limit: 1 } },
-  { pr: 21, tool: 'search_joconde_collections', dataset: 'base-joconde-extraitculture', params: { limit: 1 } },
   { pr: 21, tool: 'list_libraries', dataset: 'bibliotheques-publiques', params: { limit: 1 } },
-  { pr: 21, tool: 'list_festivals', dataset: 'liste-des-festivals-a-la-reunion', params: { limit: 1 } },
-  { pr: 21, tool: 'get_museum_attendance', dataset: 'frequentation-des-musees-de-franceculture', params: { order_by: 'annee DESC', limit: 1 } },
 
   // --- #22 Transport (new tools only)
   { pr: 22, tool: 'list_car_jaune_routes', dataset: 'gtfs-routes-cars-jaunes-lareunion', params: { limit: 1 } },
@@ -86,9 +82,13 @@ const TESTS = [
 
 // data.gouv.fr tabular-api smoke targets — separate base URL, separate run.
 const DATA_GOUV_TESTS = [
-  { tool: 'legislative_2024_round1', resource: '5163f2e3-1362-4c35-89a0-1934bb74f2d9' },
-  { tool: 'legislative_2024_round2', resource: '41ed46cd-77c2-4ecc-b8eb-374aa953ca39' },
-  { tool: 'european_2024_by_dept',   resource: 'b77cc4da-644f-4323-b6f7-ae6fe9b33f86' },
+  { tool: 'list_museums', resource: '5ccd6238-4fb0-4b2c-b14a-581909489320', filters: { 'Departement__exact': 'La Réunion' } },
+  { tool: 'search_joconde_collections', resource: '7e3307c2-f2ff-455c-bbca-bb6f11aec7bb', filters: { 'Departement__exact': 'La Réunion' } },
+  { tool: 'list_festivals', resource: '47ac11c2-8a00-46a7-9fa8-9b802643f975', filters: { 'Code Insee commune__contains': '974' } },
+  { tool: 'get_museum_attendance', resource: '7708e380-e7f8-4b56-936a-5d2a262d852d', filters: { 'region__exact': 'La Réunion' } },
+  { tool: 'legislative_2024_round1', resource: '5163f2e3-1362-4c35-89a0-1934bb74f2d9', filters: { 'Code département__exact': '974' } },
+  { tool: 'legislative_2024_round2', resource: '41ed46cd-77c2-4ecc-b8eb-374aa953ca39', filters: { 'Code département__exact': '974' } },
+  { tool: 'european_2024_by_dept', resource: 'b77cc4da-644f-4323-b6f7-ae6fe9b33f86', filters: { 'Code département__exact': '974' } },
 ];
 
 function buildUrl(dataset, params) {
@@ -135,7 +135,11 @@ async function run() {
   }
   // data.gouv.fr tabular-api smoke
   for (const t of DATA_GOUV_TESTS) {
-    const u = `https://tabular-api.data.gouv.fr/api/resources/${t.resource}/data/?${encodeURIComponent('Code département')}__exact=974&page_size=1`;
+    const u = new URL(`https://tabular-api.data.gouv.fr/api/resources/${t.resource}/data/`);
+    for (const [key, value] of Object.entries(t.filters)) {
+      u.searchParams.set(key, value);
+    }
+    u.searchParams.set('page_size', '1');
     try {
       const res = await fetch(u);
       const body = await res.json();
